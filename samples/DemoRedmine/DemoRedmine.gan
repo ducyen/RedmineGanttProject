@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project company="" gantt-divider-location="450" locale="ja_JP" name="Redmine Gantt Test" resource-divider-location="300" version="2.7.1" view-date="2016-12-15" view-index="0" webLink="http://">
+    <description/>
+    <view id="gantt-chart" zooming-state="default:3">
+        <field id="tpd3" name="名前" order="0" width="100"/>
+        <option id="taskLabelUp" value=""/>
+        <option id="taskLabelLeft" value=""/>
+        <option id="taskLabelRight" value="taskDates"/>
+    </view>
+    <view id="resource-table">
+        <field id="0" name="名前" order="0" width="50"/>
+        <field id="1" name="役割" order="1" width="49"/>
+    </view>
+    <!-- -->
+    <calendars base-id="なし">
+        <day-types>
+            <day-type id="0"/>
+            <day-type id="1"/>
+            <default-week fri="0" id="1" mon="0" name="default" sat="1" sun="1" thu="0" tue="0" wed="0"/>
+            <only-show-weekends value="false"/>
+            <overriden-day-types/>
+            <days/>
+        </day-types>
+        <date date="28" month="4" type="HOLIDAY" year="2015"><![CDATA[Holiday on 4/28/15 12:00 AM]]></date>
+        <date date="20" month="7" type="HOLIDAY" year="2015"><![CDATA[Holiday on 15/07/20 0:00]]></date>
+        <date date="13" month="8" type="HOLIDAY" year="2015"><![CDATA[Holiday on 15/08/13 0:00]]></date>
+        <date date="14" month="8" type="HOLIDAY" year="2015"><![CDATA[Holiday on 15/08/14 0:00]]></date>
+        <date date="21" month="9" type="HOLIDAY" year="2015"><![CDATA[Holiday on 15/09/21 0:00]]></date>
+        <date date="22" month="9" type="HOLIDAY" year="2015"><![CDATA[Holiday on 15/09/22 0:00]]></date>
+        <date date="23" month="9" type="HOLIDAY" year="2015"><![CDATA[Holiday on 15/09/23 0:00]]></date>
+        <date date="24" month="7" type="HOLIDAY" year="2015"><![CDATA[Holiday on 15/07/24 0:00]]></date>
+        <date date="14" month="9" type="HOLIDAY" year="2015"><![CDATA[Holiday on 15/09/14 0:00]]></date>
+        <date date="15" month="9" type="HOLIDAY" year="2015"><![CDATA[Holiday on 15/09/15 0:00]]></date>
+        <date date="16" month="9" type="HOLIDAY" year="2015"><![CDATA[Holiday on 15/09/16 0:00]]></date>
+        <date date="17" month="9" type="HOLIDAY" year="2015"><![CDATA[Holiday on 15/09/17 0:00]]></date>
+        <date date="18" month="9" type="HOLIDAY" year="2015"><![CDATA[Holiday on 15/09/18 0:00]]></date>
+        <date date="24" month="9" type="HOLIDAY" year="2015"><![CDATA[Holiday on 15/09/24 0:00]]></date>
+        <date date="25" month="9" type="HOLIDAY" year="2015"><![CDATA[Holiday on 15/09/25 0:00]]></date>
+        <date date="12" month="10" type="HOLIDAY" year="2015"><![CDATA[Holiday on 15/10/12 0:00]]></date>
+        <date date="16" month="10" type="HOLIDAY" year="2015"><![CDATA[Holiday on 15/10/16 0:00]]></date>
+        <date date="23" month="11" type="HOLIDAY" year="2015"><![CDATA[Holiday on 15/11/23 0:00]]></date>
+        <date date="5" month="2" type="HOLIDAY" year="2016"><![CDATA[Holiday on 16/02/05 0:00]]></date>
+        <date date="8" month="2" type="HOLIDAY" year="2016"><![CDATA[Holiday on 16/02/08 0:00]]></date>
+        <date date="9" month="2" type="HOLIDAY" year="2016"><![CDATA[Holiday on 16/02/09 0:00]]></date>
+        <date date="10" month="2" type="HOLIDAY" year="2016"><![CDATA[Holiday on 16/02/10 0:00]]></date>
+        <date date="11" month="2" type="HOLIDAY" year="2016"><![CDATA[Holiday on 16/02/11 0:00]]></date>
+        <date date="12" month="2" type="HOLIDAY" year="2016"><![CDATA[Holiday on 16/02/12 0:00]]></date>
+        <date date="15" month="2" type="HOLIDAY" year="2016"><![CDATA[Holiday on 16/02/15 0:00]]></date>
+        <date date="22" month="1" type="HOLIDAY" year="2016"><![CDATA[Holiday on 16/01/22 0:00]]></date>
+        <date date="11" month="1" type="HOLIDAY" year="2016"><![CDATA[Holiday on 16/01/11 0:00]]></date>
+        <date date="23" month="2" type="HOLIDAY" year="2016"><![CDATA[Holiday on 16/02/23 0:00]]></date>
+        <date date="18" month="3" type="HOLIDAY" year="2016"><![CDATA[Holiday on 16/03/18 0:00]]></date>
+        <date date="21" month="3" type="HOLIDAY" year="2016"><![CDATA[Holiday on 16/03/21 0:00]]></date>
+        <date date="19" month="2" type="HOLIDAY" year="2016"><![CDATA[Holiday on 16/02/19 0:00]]></date>
+        <date date="22" month="2" type="HOLIDAY" year="2016"><![CDATA[Holiday on 16/02/22 0:00]]></date>
+        <date date="3" month="11" type="HOLIDAY" year="2016"><![CDATA[Holiday on 16/11/03 0:00]]></date>
+        <date date="4" month="11" type="HOLIDAY" year="2016"><![CDATA[Holiday on 16/11/04 0:00]]></date>
+        <date date="23" month="11" type="HOLIDAY" year="2016"><![CDATA[Holiday on 16/11/23 0:00]]></date>
+        <date date="23" month="12" type="HOLIDAY" year="2016"><![CDATA[Holiday on 16/12/23 0:00]]></date>
+        <date date="30" month="12" type="HOLIDAY" year="2016"><![CDATA[Holiday on 16/12/30 0:00]]></date>
+        <date date="2" month="1" type="HOLIDAY" year="2017"><![CDATA[Holiday on 17/01/02 0:00]]></date>
+        <date date="3" month="1" type="HOLIDAY" year="2017"><![CDATA[Holiday on 17/01/03 0:00]]></date>
+        <date date="4" month="1" type="HOLIDAY" year="2017"><![CDATA[Holiday on 17/01/04 0:00]]></date>
+        <date date="9" month="1" type="HOLIDAY" year="2017"><![CDATA[Holiday on 17/01/09 0:00]]></date>
+        <date date="23" month="1" type="HOLIDAY" year="2017"><![CDATA[Holiday on 17/01/23 0:00]]></date>
+        <date date="24" month="1" type="HOLIDAY" year="2017"><![CDATA[Holiday on 17/01/24 0:00]]></date>
+        <date date="25" month="1" type="HOLIDAY" year="2017"><![CDATA[Holiday on 17/01/25 0:00]]></date>
+        <date date="26" month="1" type="HOLIDAY" year="2017"><![CDATA[Holiday on 17/01/26 0:00]]></date>
+        <date date="27" month="1" type="HOLIDAY" year="2017"><![CDATA[Holiday on 17/01/27 0:00]]></date>
+        <date date="30" month="1" type="HOLIDAY" year="2017"><![CDATA[Holiday on 17/01/30 0:00]]></date>
+        <date date="31" month="1" type="HOLIDAY" year="2017"><![CDATA[Holiday on 17/01/31 0:00]]></date>
+        <date date="1" month="2" type="HOLIDAY" year="2017"><![CDATA[Holiday on 17/02/01 0:00]]></date>
+        <date date="2" month="2" type="HOLIDAY" year="2017"><![CDATA[Holiday on 17/02/02 0:00]]></date>
+    </calendars>
+    <tasks empty-milestones="true">
+        <taskproperties>
+            <taskproperty id="tpd0" name="type" type="default" valuetype="icon"/>
+            <taskproperty id="tpd1" name="priority" type="default" valuetype="icon"/>
+            <taskproperty id="tpd2" name="info" type="default" valuetype="icon"/>
+            <taskproperty id="tpd3" name="name" type="default" valuetype="text"/>
+            <taskproperty id="tpd4" name="begindate" type="default" valuetype="date"/>
+            <taskproperty id="tpd5" name="enddate" type="default" valuetype="date"/>
+            <taskproperty id="tpd6" name="duration" type="default" valuetype="int"/>
+            <taskproperty id="tpd7" name="completion" type="default" valuetype="int"/>
+            <taskproperty id="tpd8" name="coordinator" type="default" valuetype="text"/>
+            <taskproperty id="tpd9" name="predecessorsr" type="default" valuetype="text"/>
+        </taskproperties>
+    </tasks>
+    <resources/>
+    <allocations/>
+    <vacations/>
+    <taskdisplaycolumns>
+        <displaycolumn order="-1" property-id="tpd12" visible="false" width="75"/>
+        <displaycolumn order="-1" property-id="tpd10" visible="false" width="75"/>
+        <displaycolumn order="-1" property-id="tpd11" visible="false" width="75"/>
+        <displaycolumn order="-1" property-id="tpd2" visible="false" width="75"/>
+        <displaycolumn order="-1" property-id="tpd13" visible="false" width="75"/>
+        <displaycolumn order="-1" property-id="tpd1" visible="false" width="75"/>
+        <displaycolumn order="-1" property-id="tpd9" visible="false" width="75"/>
+        <displaycolumn order="0" property-id="tpd3" visible="true" width="447"/>
+        <displaycolumn order="-1" property-id="tpd6" visible="false" width="75"/>
+        <displaycolumn order="-1" property-id="tpd0" visible="false" width="75"/>
+        <displaycolumn order="-1" property-id="tpd5" visible="false" width="75"/>
+        <displaycolumn order="-1" property-id="tpd8" visible="false" width="75"/>
+        <displaycolumn order="-1" property-id="tpd7" visible="false" width="75"/>
+        <displaycolumn order="-1" property-id="tpd4" visible="false" width="75"/>
+    </taskdisplaycolumns>
+    <previous/>
+    <roles roleset-name="Default"/>
+    <roles roleset-name="SoftwareDevelopment"/>
+</project>
