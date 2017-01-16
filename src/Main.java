@@ -1,3 +1,21 @@
+/**
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * @author Duc Hoang
+ *
+ */
+
 import java.text.ParseException;
 import java.util.*;
 
@@ -5,14 +23,6 @@ import com.objectcode.GanttProjectAPI.*;
 import com.taskadapter.redmineapi.*;
 import com.taskadapter.redmineapi.bean.*;
 
-/**
- * 
- */
-
-/**
- * @author 3140327
- *
- */
 public class Main {
 	protected static void log(String aLogMsg) {
 		// LOGGER.debug(aLogMsg);
@@ -139,13 +149,17 @@ public class Main {
 					}
 				);
 	    		for (Version version: versions) {
-	    			if (version.getDueDate() == null) {
-	    				continue;
-	    			}
-	    			if (version.getProject().getId() != project.getId()) {
-	    				continue;
-	    			}
 	    			log("    Version: " + version + " --> " + version.getDueDate());
+	    			if (version.getDueDate() == null) {
+	    				log("No Due Date");
+	    				continue;
+	    			}
+	    			/*
+	    			if (version.getProject().getId() != project.getId()) {
+	    				log("Not this project");
+	    				continue;
+	    			}
+	    			*/
 	    			if (startDateToCheck.compareTo(version.getDueDate()) > 0) {
 	    				continue;
 	    			}
