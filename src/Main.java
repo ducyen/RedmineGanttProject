@@ -24,6 +24,7 @@ import com.taskadapter.redmineapi.*;
 import com.taskadapter.redmineapi.bean.*;
 
 public class Main {
+	static Date startDateToCheck = null;
 	protected static void log(String aLogMsg) {
 		// LOGGER.debug(aLogMsg);
 		System.out.println(aLogMsg);  // for standalone execution of GanttDiagram.java
@@ -36,7 +37,6 @@ public class Main {
 	    // Parse series names
 	    String[] machineNames = System.getenv("PROJECTS").split(",");
     	String asigneeName = System.getenv("ASSIGNEE");
-    	Date startDateToCheck = null;
     	try {
     		startDateToCheck = GanttDiagram.gDATEFORMAT_YYYY_MM_DD.parse(System.getenv("START_DATE"));
     	} catch (ParseException e) {
@@ -151,8 +151,8 @@ public class Main {
 	    		for (Version version: versions) {
 	    			log("    Version: " + version + " --> " + version.getDueDate());
 	    			if (version.getDueDate() == null) {
-	    				log("No Due Date");
-	    				continue;
+	    				log("No Due Date --> set to start date");
+	    				version.setDueDate(startDateToCheck);
 	    			}
 	    			/*
 	    			if (version.getProject().getId() != project.getId()) {
@@ -188,6 +188,9 @@ public class Main {
 		    				Issue issue = issues.get(i);
 		    				Version targetVersion = issue.getTargetVersion();
 		    				Project targetProject = issue.getProject();
+		    				if (issue.getStartDate() == null) {
+		    					issue.setStartDate(startDateToCheck);
+		    				}
 		    				if (targetVersion != null && targetProject != null) {
 			    				if (targetVersion.getId().equals(version.getId()) && targetProject.getId().equals(project.getId())) {
 			    					User assignee = issue.getAssignee();
@@ -256,6 +259,9 @@ public class Main {
 	    				Issue issue = issues.get(i);
 	    				Project targetProject = issue.getProject();
     					User assignee = issue.getAssignee();
+	    				if (issue.getStartDate() == null) {
+	    					issue.setStartDate(startDateToCheck);
+	    				}
     					if (assignee != null && assignee.getFullName().indexOf(asigneeName) >= 0 && targetProject.getId().equals(project.getId())) {
 	    					log("        Found Issue: " + issue + " project: " + targetProject.getId() + " milestone: none " + " asignee: " + assignee + " asigneeName: " + asigneeName);
 	    					String milestoneId = String.valueOf(project.getId() | 0x40000000 | (asigneeIndex << 24));

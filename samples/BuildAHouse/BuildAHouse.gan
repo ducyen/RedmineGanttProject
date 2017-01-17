@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project company="" gantt-divider-location="307" locale="ja_JP" name="Redmine Gantt Test" resource-divider-location="300" version="2.8.1" view-date="2016-12-28" view-index="0" webLink="http://">
+    <description/>
+    <view id="gantt-chart" zooming-state="default:3">
+        <field id="tpd3" name="名前" order="0" width="303"/>
+    </view>
+    <view id="resource-table">
+        <field id="0" name="名前" order="0" width="148"/>
+        <field id="1" name="役割" order="1" width="148"/>
+    </view>
+    <!-- -->
+    <calendars base-id="なし">
+        <day-types>
+            <day-type id="0"/>
+            <day-type id="1"/>
+            <default-week fri="0" id="1" mon="0" name="default" sat="1" sun="1" thu="0" tue="0" wed="0"/>
+            <only-show-weekends value="false"/>
+            <overriden-day-types/>
+            <days/>
+        </day-types>
+        <date date="28" month="4" type="HOLIDAY" year="2015"><![CDATA[Holiday on 4/28/15 12:00 AM]]></date>
+        <date date="20" month="7" type="HOLIDAY" year="2015"><![CDATA[Holiday on 15/07/20 0:00]]></date>
+        <date date="13" month="8" type="HOLIDAY" year="2015"><![CDATA[Holiday on 15/08/13 0:00]]></date>
+        <date date="14" month="8" type="HOLIDAY" year="2015"><![CDATA[Holiday on 15/08/14 0:00]]></date>
+        <date date="21" month="9" type="HOLIDAY" year="2015"><![CDATA[Holiday on 15/09/21 0:00]]></date>
+        <date date="22" month="9" type="HOLIDAY" year="2015"><![CDATA[Holiday on 15/09/22 0:00]]></date>
+        <date date="23" month="9" type="HOLIDAY" year="2015"><![CDATA[Holiday on 15/09/23 0:00]]></date>
+        <date date="24" month="7" type="HOLIDAY" year="2015"><![CDATA[Holiday on 15/07/24 0:00]]></date>
+        <date date="14" month="9" type="HOLIDAY" year="2015"><![CDATA[Holiday on 15/09/14 0:00]]></date>
+        <date date="15" month="9" type="HOLIDAY" year="2015"><![CDATA[Holiday on 15/09/15 0:00]]></date>
+        <date date="16" month="9" type="HOLIDAY" year="2015"><![CDATA[Holiday on 15/09/16 0:00]]></date>
+        <date date="17" month="9" type="HOLIDAY" year="2015"><![CDATA[Holiday on 15/09/17 0:00]]></date>
+        <date date="18" month="9" type="HOLIDAY" year="2015"><![CDATA[Holiday on 15/09/18 0:00]]></date>
+        <date date="24" month="9" type="HOLIDAY" year="2015"><![CDATA[Holiday on 15/09/24 0:00]]></date>
+        <date date="25" month="9" type="HOLIDAY" year="2015"><![CDATA[Holiday on 15/09/25 0:00]]></date>
+        <date date="12" month="10" type="HOLIDAY" year="2015"><![CDATA[Holiday on 15/10/12 0:00]]></date>
+        <date date="16" month="10" type="HOLIDAY" year="2015"><![CDATA[Holiday on 15/10/16 0:00]]></date>
+        <date date="23" month="11" type="HOLIDAY" year="2015"><![CDATA[Holiday on 15/11/23 0:00]]></date>
+        <date date="5" month="2" type="HOLIDAY" year="2016"><![CDATA[Holiday on 16/02/05 0:00]]></date>
+        <date date="8" month="2" type="HOLIDAY" year="2016"><![CDATA[Holiday on 16/02/08 0:00]]></date>
+        <date date="9" month="2" type="HOLIDAY" year="2016"><![CDATA[Holiday on 16/02/09 0:00]]></date>
+        <date date="10" month="2" type="HOLIDAY" year="2016"><![CDATA[Holiday on 16/02/10 0:00]]></date>
+        <date date="11" month="2" type="HOLIDAY" year="2016"><![CDATA[Holiday on 16/02/11 0:00]]></date>
+        <date date="12" month="2" type="HOLIDAY" year="2016"><![CDATA[Holiday on 16/02/12 0:00]]></date>
+        <date date="15" month="2" type="HOLIDAY" year="2016"><![CDATA[Holiday on 16/02/15 0:00]]></date>
+        <date date="22" month="1" type="HOLIDAY" year="2016"><![CDATA[Holiday on 16/01/22 0:00]]></date>
+        <date date="11" month="1" type="HOLIDAY" year="2016"><![CDATA[Holiday on 16/01/11 0:00]]></date>
+        <date date="23" month="2" type="HOLIDAY" year="2016"><![CDATA[Holiday on 16/02/23 0:00]]></date>
+        <date date="18" month="3" type="HOLIDAY" year="2016"><![CDATA[Holiday on 16/03/18 0:00]]></date>
+        <date date="21" month="3" type="HOLIDAY" year="2016"><![CDATA[Holiday on 16/03/21 0:00]]></date>
+        <date date="19" month="2" type="HOLIDAY" year="2016"><![CDATA[Holiday on 16/02/19 0:00]]></date>
+        <date date="22" month="2" type="HOLIDAY" year="2016"><![CDATA[Holiday on 16/02/22 0:00]]></date>
+        <date date="3" month="11" type="HOLIDAY" year="2016"><![CDATA[Holiday on 16/11/03 0:00]]></date>
+        <date date="4" month="11" type="HOLIDAY" year="2016"><![CDATA[Holiday on 16/11/04 0:00]]></date>
+        <date date="23" month="11" type="HOLIDAY" year="2016"><![CDATA[Holiday on 16/11/23 0:00]]></date>
+        <date date="23" month="12" type="HOLIDAY" year="2016"><![CDATA[Holiday on 16/12/23 0:00]]></date>
+        <date date="30" month="12" type="HOLIDAY" year="2016"><![CDATA[Holiday on 16/12/30 0:00]]></date>
+        <date date="2" month="1" type="HOLIDAY" year="2017"><![CDATA[Holiday on 17/01/02 0:00]]></date>
+        <date date="3" month="1" type="HOLIDAY" year="2017"><![CDATA[Holiday on 17/01/03 0:00]]></date>
+        <date date="4" month="1" type="HOLIDAY" year="2017"><![CDATA[Holiday on 17/01/04 0:00]]></date>
+        <date date="9" month="1" type="HOLIDAY" year="2017"><![CDATA[Holiday on 17/01/09 0:00]]></date>
+        <date date="23" month="1" type="HOLIDAY" year="2017"><![CDATA[Holiday on 17/01/23 0:00]]></date>
+        <date date="24" month="1" type="HOLIDAY" year="2017"><![CDATA[Holiday on 17/01/24 0:00]]></date>
+        <date date="25" month="1" type="HOLIDAY" year="2017"><![CDATA[Holiday on 17/01/25 0:00]]></date>
+        <date date="26" month="1" type="HOLIDAY" year="2017"><![CDATA[Holiday on 17/01/26 0:00]]></date>
+        <date date="27" month="1" type="HOLIDAY" year="2017"><![CDATA[Holiday on 17/01/27 0:00]]></date>
+        <date date="30" month="1" type="HOLIDAY" year="2017"><![CDATA[Holiday on 17/01/30 0:00]]></date>
+        <date date="31" month="1" type="HOLIDAY" year="2017"><![CDATA[Holiday on 17/01/31 0:00]]></date>
+        <date date="1" month="2" type="HOLIDAY" year="2017"><![CDATA[Holiday on 17/02/01 0:00]]></date>
+        <date date="2" month="2" type="HOLIDAY" year="2017"><![CDATA[Holiday on 17/02/02 0:00]]></date>
+    </calendars>
+    <tasks empty-milestones="true">
+        <taskproperties>
+            <taskproperty id="tpd0" name="type" type="default" valuetype="icon"/>
+            <taskproperty id="tpd1" name="priority" type="default" valuetype="icon"/>
+            <taskproperty id="tpd2" name="info" type="default" valuetype="icon"/>
+            <taskproperty id="tpd3" name="name" type="default" valuetype="text"/>
+            <taskproperty id="tpd4" name="begindate" type="default" valuetype="date"/>
+            <taskproperty id="tpd5" name="enddate" type="default" valuetype="date"/>
+            <taskproperty id="tpd6" name="duration" type="default" valuetype="int"/>
+            <taskproperty id="tpd7" name="completion" type="default" valuetype="int"/>
+            <taskproperty id="tpd8" name="coordinator" type="default" valuetype="text"/>
+            <taskproperty id="tpd9" name="predecessorsr" type="default" valuetype="text"/>
+        </taskproperties>
+        
+    <task color="#8cb6ce" complete="0" duration="1" expand="true" id="-1073698057" meeting="false" name="RedmineGanttProject" priority="1" start="2017-01-16">
+      <notes/>
+      <task color="#8cb6ce" complete="0" duration="0" expand="true" id="-2147470231" meeting="true" name="RedmineGanttProject_Alpha Release" priority="1" start="2017-01-31">
+        <notes/>
+      </task>
+      <task color="#8cb6ce" complete="0" duration="0" expand="true" id="1073755241" meeting="false" name="☺ Alpha Release_Duc Hoang" priority="1" start="2017-01-31">
+        <notes/>
+        <task color="#8cb6ce" complete="0" duration="1" expand="true" id="628580" meeting="false" name="#628580: Do something" priority="1" start="2017-01-05">
+          <depend difference="0" hardness="Strong" id="628581" type="2"/>
+        </task>
+      </task>
+      <task color="#8cb6ce" complete="0" duration="1" expand="true" id="-2147470230" meeting="true" name="RedmineGanttProject_Beta Release" priority="1" start="2017-02-28">
+        <notes/>
+      </task>
+      <task color="#8cb6ce" complete="0" duration="1" expand="true" id="1073755242" meeting="false" name="☺ Beta Release_Duc Hoang" priority="1" start="2017-02-28">
+        <notes/>
+        <task color="#8cb6ce" complete="0" duration="1" expand="true" id="628582" meeting="false" name="#628582: Do more another thing" priority="1" start="2017-01-10"/>
+      </task>
+      <task color="#8cb6ce" complete="0" duration="1" expand="true" id="1073785591" meeting="false" name="☺ RedmineGanttProject_Duc Hoang" priority="1" start="2017-01-16">
+        <notes/>
+        <task color="#8cb6ce" complete="0" duration="1" expand="true" id="628581" meeting="false" name="#628581: Do anothing" priority="1" start="2017-01-06">
+          <depend difference="0" hardness="Strong" id="628582" type="2"/>
+        </task>
+      </task>
+    </task>
+  
+  
+  
+  <task color="#8cb6ce" complete="0" duration="1" expand="true" id="-1073698038" meeting="false" name="Xây cái nhà" priority="1" start="2017-01-17">
+      <notes><![CDATA[Dùng để kiểm thử phần mềm đồng bộ dữ liệu giữa Redmine và GanttProject
+[[https://github.com/ducyen/RedmineGanttProject]]]]></notes>
+      <task color="#8cb6ce" complete="0" duration="0" expand="true" id="-2147470226" meeting="true" name="Xây cái nhà_Làm cái móng" priority="1" start="2015-11-01">
+        <notes/>
+      </task>
+      <task color="#8cb6ce" complete="0" duration="0" expand="true" id="1073755246" meeting="false" name="☺ Làm cái móng_Duc Hoang" priority="1" start="2015-11-01">
+        <notes/>
+        <task color="#8cb6ce" complete="0" duration="0" expand="true" id="628822" meeting="false" name="#628822: Đào móng" priority="1" start="2015-11-01"/>
+      </task>
+    </task>
+  </tasks>
+    <resources/>
+    <allocations/>
+    <vacations/>
+    <previous/>
+    <roles roleset-name="Default"/>
+    <roles roleset-name="SoftwareDevelopment"/>
+</project>
