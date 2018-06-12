@@ -104,15 +104,33 @@ public class Main {
 	    	for (Project project: projects) {
 	    		List<Version> versions = projMgr.getVersions(project.getId());
 			    List<Issue> issues = mgr.getIssueManager().getIssues(project.getIdentifier(), null, Include.relations);
+			    List<Issue> orgIssues = mgr.getIssueManager().getIssues(project.getIdentifier(), null, Include.relations);
+				Collections.sort(issues,
+					new Comparator<Issue>() {
+						public int compare(Issue lhs, Issue rhs) {
+							int lhsParentId = lhs.getParentId() != null ? lhs.getParentId() : 0;
+							int rhsParentId = rhs.getParentId() != null ? rhs.getParentId() : 0;
+							int lhsId = lhs.getId();
+							int rhsId = rhs.getId();
+							if (lhsParentId == rhsId) {
+								return -1;
+							}
+							if (rhsParentId == lhsId) {
+								return 1;
+							}							
+							return 0;
+						}
+					}
+				);
 			    log("Project: " + project + " --> " + issues.size());
 			    
 			    // task id format (32bit)                .                       .                       .
-			    //                32 31 30 29 28 27 26 25 24 23 22 21 20 19 18 17 16 15 14 13 12 11 10  9  8  7  6  5  4  3  2  1  0
+			    //                31 30 29 28 27 26 25 24 23 22 21 20 19 18 17 16 15 14 13 12 11 10  9  8  7  6  5  4  3  2  1  0
 			    // project:        1  1
 			    // version:        1  0
 			    // assignee:       0  1  
 			    // assignee index:       #  #  #  #  #  #
-			    // issue:                                  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #
+			    // issue:                                  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #
 			    
 			    // Set Redmine project
 				String gcProjId = String.valueOf(project.getId() | 0xC0000000);
@@ -226,10 +244,25 @@ public class Main {
 				    		    				depends.add(dependObj);
 				    		    			}
 				    		    		}
+
+				    		    		String parentId = milestoneId;
+				    		    		if (issue.getParentId() != null) {
+				    		    			/* find parent */
+				    		    			for (Issue parentIssue: orgIssues){
+				    		    				if (parentIssue.getId().equals(issue.getParentId()) &&
+				    		    					parentIssue.getAssignee().equals(issue.getAssignee()) &&
+				    		    					issue.getTargetVersion().equals(parentIssue.getTargetVersion())) 
+				    		    				{
+						    		    			parentId = String.valueOf(issue.getParentId());
+						    		    			log(taskId + " has parent " + parentId);
+				    		    					break;
+				    		    				}
+				    		    			}
+				    		    		}
 				    		    		
 				    					ganttDiagram.modifyDiagram_addTask(
 			    							taskId, 
-			    							milestoneId, null, 
+			    							parentId, null, 
 			    							"#" + taskId + ": " + issue.getSubject(), 
 			    							issue.getDoneRatio(), 
 			    							issue.getDueDate(),
@@ -295,9 +328,24 @@ public class Main {
 	    		    			}
 	    		    		}
 	    		    		
+	    		    		String parentId = milestoneId;
+	    		    		if (issue.getParentId() != null) {
+	    		    			/* find parent */
+	    		    			for (Issue parentIssue: orgIssues){
+	    		    				if (parentIssue.getId().equals(issue.getParentId()) &&
+	    		    					parentIssue.getAssignee().equals(issue.getAssignee()) &&
+	    		    					parentIssue.getTargetVersion() == null) 
+	    		    				{
+			    		    			parentId = String.valueOf(issue.getParentId());
+			    		    			log(taskId + " has parent " + parentId);
+	    		    					break;
+	    		    				}
+	    		    			}
+	    		    		}
+	    		    		
 	    					ganttDiagram.modifyDiagram_addTask(
     							taskId, 
-    							milestoneId, null, 
+    							parentId, null, 
     							"#" + taskId + ": " + issue.getSubject(), 
     							issue.getDoneRatio(), 
     							issue.getDueDate(),
