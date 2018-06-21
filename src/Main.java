@@ -404,39 +404,17 @@ public class Main {
 	    		
 	    		// ----------- (1) Delete dependencies --------------
 	    		// Filter relation list by items existed only in GanttProject
-	    		ArrayList<IssueRelation> relationArr = new ArrayList<IssueRelation>();
 	    		for (IssueRelation relation: issue.getRelations()) {
 	    			if (tasks.containsKey(String.valueOf(relation.getIssueId())) && 
 	    				tasks.containsKey(String.valueOf(relation.getIssueToId())) &&
 	    				relation.getIssueId() == issueId &&
 	    				relation.getType().equals("precedes")
 	    			) {
-	    				relationArr.add(relation);
-	    			}
-	    		}
-	    		
-	    		// Retrieve depend list
-	    		Map<String, ArrayList<Depend>> dependencies = ganttDiagram.getDependencies();
-	    		ArrayList<Depend> depends = dependencies.get(task.getId());
-	    		
-	    		// Delete relation not existed in depend list
-	    		for (int i = relationArr.size() - 1; i >= 0; i--) {
-	    			IssueRelation relation = relationArr.get(i);
-	    			// Find same item in depend list
-	    			int foundDependIdx = -1;
-	    			for (Depend depend: depends) {
-	    				if (Integer.parseInt(depend.getId()) == relation.getIssueToId()) {
-	    					foundDependIdx = -foundDependIdx - 1;
-	    					break;
-	    				}
-	    				foundDependIdx--;
-	    			}
-	    			if (foundDependIdx >= 0) {
-	    			} else {
 	    				issueMgr.deleteRelation(relation.getId());									// delete that item
 	    				dirty = true;
 	    			}
 	    		}
+	    		
 	    		// Commit deleted relation before update date-time
 	    		if (dirty) {
 	    			issueMgr.update(issue);
@@ -482,65 +460,57 @@ public class Main {
 	    			issue.setDoneRatio(task.getCompleteLevel());
 	    			dirty = true;
 	    		}
-	    		
-	    		// ----------- (3) Change or Add dependencies --------------
-	    		ArrayList<IssueRelation> relationArr = new ArrayList<IssueRelation>();
-	    		for (IssueRelation relation: issue.getRelations()) {
-	    			if (tasks.containsKey(String.valueOf(relation.getIssueId())) && 
-	    				tasks.containsKey(String.valueOf(relation.getIssueToId())) &&
-	    				relation.getIssueId() == issueId &&
-	    				relation.getType().equals("precedes")
-	    			) {
-	    				relationArr.add(relation);
-	    			}
+	    		    		
+	    		// ------------ Commit Update ------------
+	    		if (dirty) {
+	    			issueMgr.update(issue);
+	    			log("Updated Date-Time of Issue: " + issueId);
+	    			dirty = false;
+	    		}
+	    	}
+	    	
+	    	it = tasks.keySet().iterator();
+	    	while (it.hasNext()) {
+	    		String key = it.next();
+	    		Task task = tasks.get(key);	    		
+	    		boolean dirty = false;
+	    		int issueId = Integer.parseInt(task.getId());
+	    		temp = issueId;
+	    		if (((issueId >> 24) & 0xFF) > 0) {
+	    			continue;
 	    		}
 	    		
+	    		Issue issue = null;
+	    		try {
+	    			issue = mgr.getIssueManager().getIssueById(issueId, Include.relations);
+	    		} catch (Exception e) {
+	    			log("Error at updating " + issueId + " --> " + task.getName());
+	    		}
+	    		if (issue == null) {
+	    			continue;
+	    		}
+	    		if (!issue.getAssignee().getFullName().equals(assigneeName) && !assigneeName.equals("*")) {
+	    			continue;
+	    		}
+
 	    		// Retrieve depend list
 	    		Map<String, ArrayList<Depend>> dependencies = ganttDiagram.getDependencies();
 	    		ArrayList<Depend> depends = dependencies.get(task.getId());
 	    		
-	    		// Update relation existed in depend list
-	    		for (int i = relationArr.size() - 1; i >= 0; i--) {
-	    			IssueRelation relation = relationArr.get(i);
-	    			// Find same item in depend list
-	    			int foundDependIdx = -1;
-	    			for (Depend depend: depends) {
-	    				if (Integer.parseInt(depend.getId()) == relation.getIssueToId()) {
-	    					foundDependIdx = -foundDependIdx - 1;
-	    					break;
-	    				}
-	    				foundDependIdx--;
-	    			}
-	    			if (foundDependIdx >= 0) {
-	    				Depend dependObj = depends.get(foundDependIdx);
-	    				if (Integer.parseInt(dependObj.getfDifference()) != relation.getDelay()) {
-		    				issueMgr.deleteRelation(relation.getId());								// replace that item
-		    				issueMgr.createRelation(												// by the new one has another delay
-		    					issueId, 
-		    					Integer.parseInt(dependObj.getId()), 
-		    					"precedes", 
-		    					Integer.parseInt(dependObj.getfDifference())
-		    				);
-		    				dirty = true;
-	    				}
-	    				depends.remove(foundDependIdx);
-	    			} else {
-	    			}
-	    		}
-	    		// Added relation existed in depend list but not in original relation list
-	    		for (Depend dependObj: depends) {
-    				issueMgr.createRelation(														// add a new one
+	    		// ----------- (3) Update relation existed in depend list -----------
+    			for (Depend dependObj: depends) {
+    				issueMgr.createRelation(												// by the new one has another delay
     					issueId, 
     					Integer.parseInt(dependObj.getId()), 
     					"precedes", 
     					Integer.parseInt(dependObj.getfDifference())
     				);
     				dirty = true;
-	    		}	    		
+	    		}
 
 	    		// ----------- (4) Commit updates --------------
 	    		if (dirty) {
-	    			log("Updated Information of Issue: " + issueId);
+	    			log("Updated Relationships of Issue: " + issueId);
 	    			issueMgr.update(issue);
 	    		}
 	    	}

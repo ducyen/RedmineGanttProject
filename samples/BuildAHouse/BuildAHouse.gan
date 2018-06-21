@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<project company="" gantt-divider-location="410" locale="ja_JP" name="Redmine Gantt Test" resource-divider-location="300" version="2.7.1" view-date="2017-01-07" view-index="0" webLink="http://">
+<project company="" gantt-divider-location="410" locale="ja_JP" name="Redmine Gantt Test" resource-divider-location="300" version="2.7.1" view-date="2018-06-10" view-index="0" webLink="http://">
     <description/>
-    <view id="gantt-chart" zooming-state="default:0">
+    <view id="gantt-chart" zooming-state="default:4">
         <field id="tpd3" name="名前" order="0" width="58"/>
         <field id="tpd4" name="開始日" order="1" width="23"/>
         <field id="tpd5" name="終了日" order="2" width="17"/>
@@ -88,10 +88,7 @@
             <taskproperty id="tpd9" name="predecessorsr" type="default" valuetype="text"/>
         </taskproperties>
         
-    
-  
-  
-  <task color="#8cb6ce" complete="0" duration="1" expand="true" id="-1073698038" meeting="false" name="Xây cái nhà" priority="1" start="2017-01-17">
+    <task color="#8cb6ce" complete="0" duration="1" expand="true" id="-1073698038" meeting="false" name="Xây cái nhà" priority="1" start="2017-01-17">
       <notes><![CDATA[Dùng để kiểm thử phần mềm đồng bộ dữ liệu giữa Redmine và GanttProject
 [[https://github.com/ducyen/RedmineGanttProject]]]]></notes>
       <task color="#8cb6ce" complete="0" duration="0" expand="true" id="-2147470226" meeting="true" name="Xây cái nhà_Làm cái móng" priority="1" start="2015-11-01">
@@ -99,10 +96,18 @@
       </task>
       <task color="#8cb6ce" complete="0" duration="0" expand="true" id="1073755246" meeting="false" name="☺ Làm cái móng_Duc Hoang" priority="1" start="2015-11-01">
         <notes/>
-        <task color="#8cb6ce" complete="0" duration="1" expand="true" id="628822" meeting="false" name="#628822: Đào móng" priority="1" start="2017-01-18">
-          <task color="#8cb6ce" complete="0" duration="1" expand="true" id="628849" meeting="false" name="#628849: Đặt dầm thép" priority="1" start="2017-01-18"/>
-          <task color="#8cb6ce" complete="0" duration="0" expand="true" id="759259" meeting="false" name="#759259: Do be tong" priority="1" start="2015-11-01"/>
+        <task color="#8cb6ce" complete="0" duration="1" expand="true" id="628822" meeting="false" name="#628822: Đào móng" priority="1" start="2018-06-14">
+          <depend difference="0" hardness="Strong" id="761291" type="2"/>
         </task>
+        <task color="#8cb6ce" complete="0" duration="2" expand="true" id="628849" meeting="false" name="#628849: Đặt dầm thép" priority="1" start="2018-06-15">
+          <task color="#8cb6ce" complete="0" duration="1" expand="true" id="761291" meeting="false" name="#761291: Lap be go" priority="1" start="2018-06-15">
+            <depend difference="0" hardness="Strong" id="761350" type="2"/>
+          </task>
+          <task color="#8cb6ce" complete="0" duration="1" expand="true" id="761350" meeting="false" name="#761350: Hong Kho" priority="1" start="2018-06-18">
+            <depend difference="0" hardness="Strong" id="759259" type="2"/>
+          </task>
+        </task>
+        <task color="#8cb6ce" complete="0" duration="1" expand="true" id="759259" meeting="false" name="#759259: Do be tong" priority="1" start="2018-06-19"/>
       </task>
       <task color="#8cb6ce" complete="0" duration="0" expand="true" id="-2147470225" meeting="true" name="Xây cái nhà_Xây tầng 1" priority="1" start="2017-01-31">
         <notes/>
@@ -117,7 +122,7 @@
     <vacations/>
     <taskdisplaycolumns>
         <displaycolumn order="-1" property-id="tpd12" visible="false" width="75"/>
-        <displaycolumn order="-1" property-id="tpd10" visible="false" width="70"/>
+        <displaycolumn order="-1" property-id="tpd10" visible="false" width="75"/>
         <displaycolumn order="-1" property-id="tpd11" visible="false" width="75"/>
         <displaycolumn order="-1" property-id="tpd2" visible="false" width="75"/>
         <displaycolumn order="-1" property-id="tpd13" visible="false" width="75"/>
