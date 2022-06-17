@@ -302,10 +302,10 @@ public class GanttDiagram {
         nodelistNotes = task.getChildNodes(); // cannot use task.getElementsByTagName("notes"), because you would find notes on deeper child-tasks! 
         for (int idx=0; idx<nodelistNotes.getLength(); idx++) {
           if (nodelistNotes.item(idx).getNodeName().equals("notes")) {
-        	if (nodelistNotes.item(idx).getFirstChild() == null) {
+        	if (nodelistNotes.item(idx).getTextContent() == null) {
         		continue;
         	}
-            String note = nodelistNotes.item(idx).getFirstChild().toString();
+            String note = nodelistNotes.item(idx).getTextContent().trim();
             if (note.startsWith("[#cdata-section: "))
               note = note.substring(17); 
             if (note.startsWith("[#cdata-section:"))

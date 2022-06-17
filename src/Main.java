@@ -269,7 +269,7 @@ public class Main {
 			    							false, 
 			    							"1",
 			    							issue.getStartDate(),
-			    							issue.getNotes(),
+			    							issue.getDescription(),
 			    							depends
 				    					);
 				    					
@@ -352,7 +352,7 @@ public class Main {
     							false, 
     							"1",
     							issue.getStartDate(),
-    							issue.getNotes(),
+    							issue.getDescription(),
     							depends
 	    					);
 	    					
@@ -458,6 +458,12 @@ public class Main {
 	    		}
 	    		if (issue.getDoneRatio().compareTo(task.getCompleteLevel()) != 0) {
 	    			issue.setDoneRatio(task.getCompleteLevel());
+	    			dirty = true;
+	    		}
+	    		if (task.getNote() != null &&
+	    		   (issue.getDescription() == null || issue.getDescription().compareTo(task.getNote()) != 0) 
+	    		){
+	    			issue.setDescription(task.getNote());
 	    			dirty = true;
 	    		}
 	    		    		
