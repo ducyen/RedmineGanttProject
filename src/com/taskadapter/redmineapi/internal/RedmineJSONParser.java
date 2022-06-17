@@ -421,8 +421,24 @@ public class RedmineJSONParser {
 				MINIMAL_PROJECT_PARSER));
 		result.setAuthor(JsonInput.getObjectOrNull(content, "author",
 				USER_PARSER));
-		result.setStartDate(getDateOrNull(content, "start_date"));
-		result.setDueDate(getDateOrNull(content, "due_date"));
+		
+		JSONArray customFields = JsonInput.getArrayOrNull(content, "custom_fields");
+		Date startDate = getDateOrNull(content, "start_date");
+		for (int i = 0; i < customFields.length(); i++) {
+			JSONObject customField = (JSONObject)customFields.get(i);
+			if (JsonInput.getStringOrNull(customField, "name").compareTo("[構想設計]完了予定日") == 0) {
+				startDate = getDateOrNull(customField, "value");
+			}
+		}
+		result.setStartDate(startDate);
+		Date dueDate = getDateOrNull(content, "due_date");
+		for (int i = 0; i < customFields.length(); i++) {
+			JSONObject customField = (JSONObject)customFields.get(i);
+			if (JsonInput.getStringOrNull(customField, "name").compareTo("[総合テスト]完了予定日") == 0) {
+				dueDate = getDateOrNull(customField, "value");
+			}
+		}
+		result.setDueDate(dueDate);
 		result.setTracker(JsonInput.getObjectOrNull(content, "tracker",
 				TRACKER_PARSER));
 		result.setDescription(JsonInput

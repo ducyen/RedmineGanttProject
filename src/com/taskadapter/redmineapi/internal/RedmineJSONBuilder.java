@@ -323,6 +323,21 @@ public class RedmineJSONBuilder {
         if (issue.getCategory() != null)
             JsonOutput.addIfNotNull(writer, "category_id", issue.getCategory().getId());
         JsonOutput.addIfNotNull(writer, "notes", issue.getNotes());
+        
+		for (CustomField field : issue.getCustomFields()) {
+			if (field.getName().compareTo("[構想設計]完了予定日") == 0) {
+				final SimpleDateFormat format = RedmineDateParser.SHORT_DATE_FORMAT_V2.get();
+				String startDate = format.format(issue.getStartDate());
+				field.setValue(startDate);
+			}
+		}
+		for (CustomField field : issue.getCustomFields()) {
+			if (field.getName().compareTo("[総合テスト]完了予定日") == 0) {
+				final SimpleDateFormat format = RedmineDateParser.SHORT_DATE_FORMAT_V2.get();
+				String dueDate = format.format(issue.getStartDate());
+				field.setValue(dueDate);
+			}
+		}
 		writeCustomFields(writer, issue.getCustomFields());
 
         Collection<Watcher> issueWatchers = issue.getWatchers();
