@@ -461,7 +461,8 @@ public class Main {
 	    			dirty = true;
 	    		}
 	    		if (task.getNote() != null &&
-	    		   (issue.getDescription() == null || issue.getDescription().compareTo(task.getNote()) != 0) 
+	    		   (issue.getDescription() == null || 
+	    		   issue.getDescription().replaceAll("\\r|\\n", "").compareTo(task.getNote().replaceAll("\\r|\\n", "")) != 0) 
 	    		){
 	    			issue.setDescription(task.getNote());
 	    			dirty = true;
