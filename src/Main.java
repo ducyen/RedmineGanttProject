@@ -379,6 +379,65 @@ public class Main {
 	    	IssueManager issueMgr = mgr.getIssueManager();
 	    	Map<String, Task> tasks = ganttDiagram.getActivitiesAndMilestones();
 	    	Iterator<String> it = tasks.keySet().iterator();
+	    	
+	    	// Add new issues
+	    	while (it.hasNext()) {
+	    		String key = it.next();
+	    		Task task = tasks.get(key);	    		
+	    		boolean dirty = false;
+	    		int issueId = Integer.parseInt(task.getId());
+	    		
+	    		if (task.getWebLink() == null || task.getWebLink().trim().isEmpty()) {
+	    			System.out.println("New task found: " + task.getName());
+	    		} else {
+	    			continue;
+	    		}
+	    		
+			    // task id format (32bit)                .                       .                       .
+			    //                31 30 29 28 27 26 25 24 23 22 21 20 19 18 17 16 15 14 13 12 11 10  9  8  7  6  5  4  3  2  1  0
+			    // project:        1  1
+			    // version:        1  0
+			    // assignee:       0  1  
+			    // assignee index:       #  #  #  #  #  #
+			    // issue:                                  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #
+	    		// ----------- (1) Find project Id --------------
+	    		String parentId;
+	    		Task parentTsk = task;
+	    		Task projectTsk = null;
+	    		int projectId = 0;
+	    		do {
+		    		parentId = parentTsk.getParentId();
+		    		parentTsk = ganttDiagram.getTaskById(parentId);
+		    		if (parentTsk != null ) {
+		    			projectTsk = parentTsk;
+		    			projectId = Integer.parseInt(parentId) & 0x00FFFFFF;
+		    		}
+	    		} while (parentTsk != null);
+	    		
+	    		// ----------- (2) Create new Issue --------------
+	    		Issue issue = null;
+	    		try {
+	    			issue = mgr.getIssueManager().createIssue(issue);
+	    		} catch (Exception e) {
+	    			log("Error at updating " + issueId + " --> " + task.getName());
+	    		}
+	    		
+	    		// ----------- (3) Add initial information --------------
+	    		if (issue != null) {
+	    			Project project = mgr.getProjectManager().getProjectById(projectId);
+	    			issue.setProject(project);
+	    		}	    		
+	    		
+	    		// ----------- (4) Commit change --------------	    		
+	    		if (dirty) {
+	    			issueMgr.update(issue);
+	    			log("New Issue Added: " + issueId);
+	    			dirty = false;
+	    		}
+	    	}
+	    	
+	    	// Update existed issues
+	    	it = tasks.keySet().iterator();
 	    	while (it.hasNext()) {
 	    		String key = it.next();
 	    		Task task = tasks.get(key);	    		

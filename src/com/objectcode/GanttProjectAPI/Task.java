@@ -33,6 +33,7 @@ import java.text.ParseException;
     private String fPriority;
     private String fPath;
     private String fMeeting;
+    private String fWebLink;
     private HashSet<ResourceAllocation> fResourceHash = new HashSet<ResourceAllocation>();  // HashSet with ResourceAllocation-Objects
     
     public Task(String anId, String aName) {
@@ -227,4 +228,11 @@ import java.text.ParseException;
 		fMeeting = Meeting;
 	}
  
+	public String getWebLink() {
+		return fWebLink;
+	}
+
+	public void setWebLink(String WebLink) {
+		fWebLink = WebLink;
+	}
   }

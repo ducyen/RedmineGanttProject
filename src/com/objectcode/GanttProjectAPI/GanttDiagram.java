@@ -254,6 +254,9 @@ public class GanttDiagram {
         taskObject.setStartDate(task.getAttributeNode("start").getValue());
         taskObject.setDuration(task.getAttributeNode("duration").getValue());
         taskObject.setCompleteLevel(task.getAttributeNode("complete").getValue());
+        if (task.getAttributeNode("webLink") != null ) {
+        	taskObject.setWebLink(task.getAttributeNode("webLink").getValue());
+        }
         node = task.getAttributeNode("priority");
         if (node != null) {
         	taskObject.setPriority(task.getAttributeNode("priority").getValue());
@@ -1280,6 +1283,7 @@ public class GanttDiagram {
     newTask.setAttribute("id", aTaskId);
     newTask.setAttribute("name", aTaskName);
     newTask.setAttribute("complete", String.valueOf(aCompleteLevel));
+    newTask.setAttribute("webLink", "http://jpeaws482.apo.epson.net/redmine2/sot/issues/" + aTaskId + ".xml");
     
     int aDuration = 0;
     if (aDateEnd != null && aDateStart != null) {
