@@ -1,6 +1,7 @@
 package com.objectcode.GanttProjectAPI.test;
 
 import com.objectcode.GanttProjectAPI.GanttDiagram;
+import com.objectcode.GanttProjectAPI.GanttDiagram.TaskKind;
 
 /**
  * read data from gantt-xml-file, modify data and write back xml-file
@@ -63,7 +64,7 @@ public class Test2 {
 
     //Task-data:
     log("\n------------------Change Task-Data---------------------\n");
-    ganttDiagram.modifyDiagram_addTask("101", "3", "7", "NewTask", 0, new java.util.Date(), false, "1", new java.util.Date(), "created by Test2.java", null);
+    ganttDiagram.modifyDiagram_addTask("101", "3", "7", "NewTask", 0, new java.util.Date(), TaskKind.ACTIVITY, "1", new java.util.Date(), "created by Test2.java", null);
     ganttDiagram.modifyDiagram_setTaskName("1", "new TaskName");
     ganttDiagram.modifyDiagram_setTaskMeeting("1", "true");
     ganttDiagram.modifyDiagram_setTaskStartDate("3", new java.util.Date());   

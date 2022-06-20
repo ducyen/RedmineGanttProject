@@ -36,6 +36,11 @@ public class GanttDiagram {
 //  private static final Logger LOGGER = Logger.getLogger(GanttDiagram.class);
   public static final SimpleDateFormat gDATEFORMAT_YYYY_MM_DD = new SimpleDateFormat("yyyy-MM-dd");
   public static final String gPATH_DELIMITER = " / ";
+  public enum TaskKind {
+	PROJECT,  
+	MILESTONE,  
+	ACTIVITY  
+  };
   
   private static final String LINE_SEPARATOR = System.getProperty("line.separator");
   
@@ -1270,10 +1275,10 @@ public class GanttDiagram {
    *<br> - Case C: If aParentTaskId is NOT null and if aNextSiblingTaskId is NOT null, then insert this task into the parent node, before the next sibling (following) node. If the next sibling node cannot be found, then goto Case B!. 
    */
   public void modifyDiagram_addTask(String aTaskId, String aParentTaskId, String aNextSiblingTaskId, 
-      String aTaskName, int aCompleteLevel, java.util.Date aDateEnd, boolean isMilestone, String aPriority, 
+      String aTaskName, int aCompleteLevel, java.util.Date aDateEnd, TaskKind taskKind, String aPriority, 
       java.util.Date aDateStart, String aNotes, ArrayList<Depend> depends) {
     log("modifyDiagram_addTask(taskId="+aTaskId+", ParentTaskId="+aParentTaskId+", NextSiblingTaskId="+aNextSiblingTaskId);
-    log("data: Name="+aTaskName+", CompleteLevel="+aCompleteLevel+", EndDate="+aDateEnd+", IsMilestone="+isMilestone+", Priority="+aPriority+", DateStart="+aDateStart);
+    log("data: Name="+aTaskName+", CompleteLevel="+aCompleteLevel+", EndDate="+aDateEnd+", IsMilestone="+(taskKind == TaskKind.MILESTONE)+", Priority="+aPriority+", DateStart="+aDateStart);
     if (aNotes != null)
       log("add notes-tag: "+aNotes);
     
@@ -1306,7 +1311,10 @@ public class GanttDiagram {
     	}
     }    
     newTask.setAttribute("duration", String.valueOf(aDuration));
-    newTask.setAttribute("meeting", (isMilestone?"true":"false"));
+    newTask.setAttribute("meeting", ((taskKind == TaskKind.MILESTONE)?"true":"false"));
+    if(taskKind == TaskKind.PROJECT) {
+    	newTask.setAttribute("project", "true");
+    }
     newTask.setAttribute("priority", aPriority);
     newTask.setAttribute("start", gDATEFORMAT_YYYY_MM_DD.format(aDateStart));
     // set constants
