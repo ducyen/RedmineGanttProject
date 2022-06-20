@@ -148,7 +148,8 @@ public class Main {
 					"1",
 					project.getCreatedOn(),
 					project.getDescription(),
-					null
+					null,
+					0
 				);
 				Collections.sort(versions,
 					new Comparator<Version>() {
@@ -195,7 +196,8 @@ public class Main {
 						"1",
 						version.getDueDate(),
 						version.getDescription(),
-						null
+						null,
+						0
 					);
 					
 					String[] asigneeNames = asigneeNameCsv.split(",");
@@ -227,7 +229,8 @@ public class Main {
 				    							"1",
 				    							version.getDueDate(),
 				    							version.getDescription(),
-				    							null
+				    							null,
+				    							0
 				    						);
 					    					milestoneAdded = true;
 				    					}
@@ -270,7 +273,8 @@ public class Main {
 			    							"1",
 			    							issue.getStartDate(),
 			    							issue.getDescription(),
-			    							depends
+			    							depends,
+			    							issue.getTracker() != null ? issue.getTracker().getId() : 0
 				    					);
 				    					
 				    		    		// Remove the checked item
@@ -310,7 +314,8 @@ public class Main {
 	    							"1",
 	    							project.getCreatedOn(),
 	    							project.getDescription(),
-	    							null
+	    							null,
+	    							0
 	    						);
 		    					milestoneAdded = true;
 	    					}
@@ -353,7 +358,8 @@ public class Main {
     							"1",
     							issue.getStartDate(),
     							issue.getDescription(),
-    							depends
+    							depends,
+    							issue.getTracker() != null ? issue.getTracker().getId() : 0
 	    					);
 	    					
 	    		    		// Remove the checked item
@@ -377,6 +383,7 @@ public class Main {
     	int temp = 0;
 	    try {
 	    	IssueManager issueMgr = mgr.getIssueManager();
+	    	UserManager  userMgr = mgr.getUserManager();
 	    	Map<String, Task> tasks = ganttDiagram.getActivitiesAndMilestones();
 	    	Iterator<String> it = tasks.keySet().iterator();
 	    	
@@ -414,24 +421,63 @@ public class Main {
 		    		}
 	    		} while (parentTsk != null);
 	    		
-	    		// ----------- (2) Create new Issue --------------
-	    		Issue issue = null;
-	    		try {
-	    			issue = mgr.getIssueManager().createIssue(issue);
-	    		} catch (Exception e) {
-	    			log("Error at updating " + issueId + " --> " + task.getName());
-	    		}
+	    		// ----------- (2) Set initial information --------------
+	    		Issue issue = new Issue();
 	    		
-	    		// ----------- (3) Add initial information --------------
 	    		if (issue != null) {
 	    			Project project = mgr.getProjectManager().getProjectById(projectId);
 	    			issue.setProject(project);
+	    			for (Tracker tracker: issueMgr.getTrackers()) {
+	    				System.out.println("Checking tracker: " + tracker.getId());
+	    				if (tracker.getId() == Integer.valueOf(task.getCustomColumn(Task.CustomColumnKind.TRACKER))) {
+	    	    			issue.setTracker(tracker);
+	    	    			break;
+	    				}
+	    			}
+	    			issue.setSubject(task.getName());
+	    			issue.setDescription(task.getNote());
+	    			issue.setStatusId(1);
+	    			issue.setPriorityId(2);	    			
+	    			issue.setAssignee(userMgr.getCurrentUser());
+	    			issue.setParentId(Integer.valueOf(task.getParentId()));
+	    			
+	    			// custom fields
+	    			issue.addCustomField(
+	    				CustomFieldFactory.create( 2, "要件責任者", task.getCustomColumn(Task.CustomColumnKind.PIC))
+	    			);
+	    			issue.addCustomField(
+	    				CustomFieldFactory.create( 3, "チームリーダー", task.getCustomColumn(Task.CustomColumnKind.LEADER))
+	    			);
+	    			issue.addCustomField(
+	    				CustomFieldFactory.create( 4, "責任課長", task.getCustomColumn(Task.CustomColumnKind.MANAGER))
+	    			);
+	    			
+	    			CustomField modelList = CustomFieldFactory.create(1);
+	    			modelList.setName("対象機種");
+	    			String[] modelsName = task.getCustomColumn(Task.CustomColumnKind.MODELS).split(",");
+	    			modelList.setValues(Arrays.asList(modelsName));
+	    			issue.addCustomField(modelList);
 	    		}	    		
+	    		
+	    		// ----------- (3) Create new Issue on Server --------------
+	    		try {
+	    			issue =issueMgr.createIssue(issue);
+		    		if (task.getStartDate() != null) {
+		    			issue.setStartDate(task.getStartDate());
+		    		}
+		    		if (task.getEndDate() != null) {
+		    			issue.setDueDate(task.getEndDate());
+		    		}
+	    			
+	    			dirty = true;
+	    		} catch (RedmineException e) {
+	    			log("Error at issue creating " + e);
+	    		}
 	    		
 	    		// ----------- (4) Commit change --------------	    		
 	    		if (dirty) {
-	    			//issueMgr.update(issue);
-	    			log("New Issue Added: " + issueId);
+	    			issueMgr.update(issue);
+	    			log("New Issue Added: " + issue.getId());
 	    			dirty = false;
 	    		}
 	    	}

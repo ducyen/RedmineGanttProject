@@ -16,7 +16,16 @@ import java.text.ParseException;
    * @author heyduk
    */
   public class Task{
+	public enum CustomColumnKind {
+		TRACKER,
+		PIC,
+		LEADER,
+		MANAGER,
+		MODELS
+	}	  
+	  
     // private static final Logger LOGGER = Logger.getLogger(Task.class);
+	private String[] CustomeColumns = new String[CustomColumnKind.values().length];
   
     private String fId;               // internal unique ID of task in GanttProject
     private String fName;             // name of task in GanttProject
@@ -234,5 +243,13 @@ import java.text.ParseException;
 
 	public void setWebLink(String WebLink) {
 		fWebLink = WebLink;
+	}
+
+	public String getCustomColumn(CustomColumnKind kind) {
+		return CustomeColumns[kind.ordinal()];
+	}
+
+	public void setCustomColumn(CustomColumnKind kind, String value) {
+		CustomeColumns[kind.ordinal()] = value;;
 	}
   }
