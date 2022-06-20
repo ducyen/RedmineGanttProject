@@ -430,7 +430,7 @@ public class Main {
 	    		
 	    		// ----------- (4) Commit change --------------	    		
 	    		if (dirty) {
-	    			issueMgr.update(issue);
+	    			//issueMgr.update(issue);
 	    			log("New Issue Added: " + issueId);
 	    			dirty = false;
 	    		}

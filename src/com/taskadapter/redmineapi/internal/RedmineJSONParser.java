@@ -422,25 +422,44 @@ public class RedmineJSONParser {
 		result.setAuthor(JsonInput.getObjectOrNull(content, "author",
 				USER_PARSER));
 		
+		result.setTracker(JsonInput.getObjectOrNull(content, "tracker",
+				TRACKER_PARSER));
+		
+		String startDateName = "[構想設計]完了予定日";
+		String dueDateName   = "[総合テスト]完了予定日";
+		
+		if (result.getTracker() != null && result.getTracker().getName().compareTo("要件") == 0) {
+			startDateName = "[詳細設計]完了予定日";
+			dueDateName   = "[単体テスト]完了予定日";
+		}
+		
 		JSONArray customFields = JsonInput.getArrayOrNull(content, "custom_fields");
 		Date startDate = getDateOrNull(content, "start_date");
 		for (int i = 0; i < customFields.length(); i++) {
 			JSONObject customField = (JSONObject)customFields.get(i);
-			if (JsonInput.getStringOrNull(customField, "name").compareTo("[構想設計]完了予定日") == 0) {
-				startDate = getDateOrNull(customField, "value");
+			if (JsonInput.getStringOrNull(customField, "name").compareTo(startDateName) == 0) {
+				try {
+					startDate = getDateOrNull(customField, "value");
+				} catch (JSONException jsonException) {
+					startDate = getDateOrNull(content, "start_date");
+				}
+				break;
 			}
 		}
 		result.setStartDate(startDate);
 		Date dueDate = getDateOrNull(content, "due_date");
 		for (int i = 0; i < customFields.length(); i++) {
 			JSONObject customField = (JSONObject)customFields.get(i);
-			if (JsonInput.getStringOrNull(customField, "name").compareTo("[総合テスト]完了予定日") == 0) {
-				dueDate = getDateOrNull(customField, "value");
+			if (JsonInput.getStringOrNull(customField, "name").compareTo(dueDateName) == 0) {
+				try {
+					dueDate = getDateOrNull(customField, "value");
+				} catch (JSONException jsonException) {
+					dueDate = getDateOrNull(content, "due_date");
+				}
+				break;
 			}
 		}
 		result.setDueDate(dueDate);
-		result.setTracker(JsonInput.getObjectOrNull(content, "tracker",
-				TRACKER_PARSER));
 		result.setDescription(JsonInput
 				.getStringOrEmpty(content, "description"));
 		result.setCreatedOn(getDateOrNull(content, "created_on"));
