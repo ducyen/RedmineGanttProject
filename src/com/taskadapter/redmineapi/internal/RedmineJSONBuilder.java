@@ -343,7 +343,7 @@ public class RedmineJSONBuilder {
 		for (CustomField field : issue.getCustomFields()) {
 			if (field.getName().compareTo(dueDateName) == 0) {
 				final SimpleDateFormat format = RedmineDateParser.SHORT_DATE_FORMAT_V2.get();
-				String dueDate = format.format(issue.getStartDate());
+				String dueDate = format.format(issue.getDueDate());
 				field.setValue(dueDate);
 				break;
 			}

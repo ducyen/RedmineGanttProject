@@ -1398,7 +1398,7 @@ public class GanttDiagram {
    */
   public void modifyDiagram_addTask(String aTaskId, String aParentTaskId, String aNextSiblingTaskId, 
       String aTaskName, int aCompleteLevel, java.util.Date aDateEnd, TaskKind taskKind, String aPriority, 
-      java.util.Date aDateStart, String aNotes, ArrayList<Depend> depends, int tracker) {
+      java.util.Date aDateStart, String aNotes, ArrayList<Depend> depends, int tracker, String[] others) {
     log("modifyDiagram_addTask(taskId="+aTaskId+", ParentTaskId="+aParentTaskId+", NextSiblingTaskId="+aNextSiblingTaskId);
     log("data: Name="+aTaskName+", CompleteLevel="+aCompleteLevel+", EndDate="+aDateEnd+", IsMilestone="+(taskKind == TaskKind.MILESTONE)+", Priority="+aPriority+", DateStart="+aDateStart);
     if (aNotes != null)
@@ -1468,19 +1468,83 @@ public class GanttDiagram {
     
     // tracker
     if (tracker > 0) {
-	    String trackerId = null;
+	    String propertyId = null;
 	    NodeList taskProperties = fDom.getElementsByTagName("taskproperty");
 	    for (int i = 0; i < taskProperties.getLength(); i++){
 	    	Element taskProperty = (Element)taskProperties.item(i);
 	    	if (taskProperty.getAttribute("name").compareTo("tracker") == 0) {
-	    		trackerId = taskProperty.getAttribute("id");
+	    		propertyId = taskProperty.getAttribute("id");
 	    		break;
 	    	}
 	    }
-	    if (trackerId != null) {
+	    if (propertyId != null) {
 	        Element customproperty = fDom.createElement("customproperty");
-	        customproperty.setAttribute("taskproperty-id", trackerId);
+	        customproperty.setAttribute("taskproperty-id", propertyId);
 	        customproperty.setAttribute("value", String.valueOf(tracker));
+	        newTask.appendChild(customproperty);
+	    }
+    }
+    if (others != null) {
+	    String propertyId = null;
+	    NodeList taskProperties = fDom.getElementsByTagName("taskproperty");
+	    
+	    // 責任者
+	    for (int i = 0; i < taskProperties.getLength(); i++){
+	    	Element taskProperty = (Element)taskProperties.item(i);
+	    	if (taskProperty.getAttribute("name").compareTo("要件責任者") == 0) {
+	    		propertyId = taskProperty.getAttribute("id");
+	    		break;
+	    	}
+	    }
+	    if (propertyId != null) {
+	        Element customproperty = fDom.createElement("customproperty");
+	        customproperty.setAttribute("taskproperty-id", propertyId);
+	        customproperty.setAttribute("value", others[Task.CustomColumnKind.PIC.ordinal()]);
+	        newTask.appendChild(customproperty);
+	    }
+
+	    // チームリーダー
+	    for (int i = 0; i < taskProperties.getLength(); i++){
+	    	Element taskProperty = (Element)taskProperties.item(i);
+	    	if (taskProperty.getAttribute("name").compareTo("チームリーダー") == 0) {
+	    		propertyId = taskProperty.getAttribute("id");
+	    		break;
+	    	}
+	    }
+	    if (propertyId != null) {
+	        Element customproperty = fDom.createElement("customproperty");
+	        customproperty.setAttribute("taskproperty-id", propertyId);
+	        customproperty.setAttribute("value", others[Task.CustomColumnKind.LEADER.ordinal()]);
+	        newTask.appendChild(customproperty);
+	    }
+
+	    // 責任課長
+	    for (int i = 0; i < taskProperties.getLength(); i++){
+	    	Element taskProperty = (Element)taskProperties.item(i);
+	    	if (taskProperty.getAttribute("name").compareTo("責任課長") == 0) {
+	    		propertyId = taskProperty.getAttribute("id");
+	    		break;
+	    	}
+	    }
+	    if (propertyId != null) {
+	        Element customproperty = fDom.createElement("customproperty");
+	        customproperty.setAttribute("taskproperty-id", propertyId);
+	        customproperty.setAttribute("value", others[Task.CustomColumnKind.MANAGER.ordinal()]);
+	        newTask.appendChild(customproperty);
+	    }
+
+	    // 対象機種
+	    for (int i = 0; i < taskProperties.getLength(); i++){
+	    	Element taskProperty = (Element)taskProperties.item(i);
+	    	if (taskProperty.getAttribute("name").compareTo("対象機種") == 0) {
+	    		propertyId = taskProperty.getAttribute("id");
+	    		break;
+	    	}
+	    }
+	    if (propertyId != null) {
+	        Element customproperty = fDom.createElement("customproperty");
+	        customproperty.setAttribute("taskproperty-id", propertyId);
+	        customproperty.setAttribute("value", others[Task.CustomColumnKind.MODELS.ordinal()]);
 	        newTask.appendChild(customproperty);
 	    }
     }

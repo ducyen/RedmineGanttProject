@@ -149,7 +149,8 @@ public class Main {
 					project.getCreatedOn(),
 					project.getDescription(),
 					null,
-					0
+					0,
+					null
 				);
 				Collections.sort(versions,
 					new Comparator<Version>() {
@@ -197,7 +198,8 @@ public class Main {
 						version.getDueDate(),
 						version.getDescription(),
 						null,
-						0
+						0,
+						null
 					);
 					
 					String[] asigneeNames = asigneeNameCsv.split(",");
@@ -230,7 +232,8 @@ public class Main {
 				    							version.getDueDate(),
 				    							version.getDescription(),
 				    							null,
-				    							0
+				    							0,
+				    							null
 				    						);
 					    					milestoneAdded = true;
 				    					}
@@ -263,6 +266,32 @@ public class Main {
 				    		    			}
 				    		    		}
 				    		    		
+				    		    		String[] customProperties = new String[Task.CustomColumnKind.values().length];
+				    		    		if (issue.getCustomFieldByName("要件責任者") != null) {
+				    		    			customProperties[Task.CustomColumnKind.PIC.ordinal()    ] = issue.getCustomFieldByName("要件責任者").getValue();
+			    						} else if (issue.getCustomFieldByName("要求責任者") != null) {
+				    		    			customProperties[Task.CustomColumnKind.PIC.ordinal()    ] = issue.getCustomFieldByName("要求責任者").getValue();
+			    						}
+				    		    		if (issue.getCustomFieldByName("チームリーダー") != null) {
+				    		    			customProperties[Task.CustomColumnKind.LEADER.ordinal() ] = issue.getCustomFieldByName("チームリーダー").getValue();
+				    		    		}
+				    		    		if (issue.getCustomFieldByName("責任課長") != null) {
+				    		    			customProperties[Task.CustomColumnKind.MANAGER.ordinal()] = issue.getCustomFieldByName("責任課長"      ).getValue();
+				    		    		}
+				    		    		if (issue.getCustomFieldByName("対象機種") != null) {
+				    		    			String csvValues = "";
+				    		    			int j = 0;
+				    		    			for (String value: issue.getCustomFieldByName("対象機種").getValues()) {
+				    		    				if( j == 0) {
+				    		    					csvValues = value;
+				    		    				} else {
+				    		    					csvValues += "," + value;
+				    		    				}
+				    		    				j++;
+				    		    			}
+				    		    			customProperties[Task.CustomColumnKind.MODELS.ordinal()]  = csvValues;
+				    		    		}
+				    		    		
 				    					ganttDiagram.modifyDiagram_addTask(
 			    							taskId, 
 			    							parentId, null, 
@@ -274,7 +303,8 @@ public class Main {
 			    							issue.getStartDate(),
 			    							issue.getDescription(),
 			    							depends,
-			    							issue.getTracker() != null ? issue.getTracker().getId() : 0
+			    							issue.getTracker() != null ? issue.getTracker().getId() : 0,
+			    							customProperties
 				    					);
 				    					
 				    		    		// Remove the checked item
@@ -315,7 +345,8 @@ public class Main {
 	    							project.getCreatedOn(),
 	    							project.getDescription(),
 	    							null,
-	    							0
+	    							0,
+	    							null
 	    						);
 		    					milestoneAdded = true;
 	    					}
@@ -348,6 +379,32 @@ public class Main {
 	    		    			}
 	    		    		}
 	    		    		
+	    		    		String[] customProperties = new String[Task.CustomColumnKind.values().length];
+	    		    		if (issue.getCustomFieldByName("要件責任者") != null) {
+	    		    			customProperties[Task.CustomColumnKind.PIC.ordinal()    ] = issue.getCustomFieldByName("要件責任者").getValue();
+    						} else if (issue.getCustomFieldByName("要求責任者") != null) {
+	    		    			customProperties[Task.CustomColumnKind.PIC.ordinal()    ] = issue.getCustomFieldByName("要求責任者").getValue();
+    						}
+	    		    		if (issue.getCustomFieldByName("チームリーダー") != null) {
+	    		    			customProperties[Task.CustomColumnKind.LEADER.ordinal() ] = issue.getCustomFieldByName("チームリーダー").getValue();
+	    		    		}
+	    		    		if (issue.getCustomFieldByName("責任課長") != null) {
+	    		    			customProperties[Task.CustomColumnKind.MANAGER.ordinal()] = issue.getCustomFieldByName("責任課長"      ).getValue();
+	    		    		}
+	    		    		if (issue.getCustomFieldByName("対象機種") != null) {
+	    		    			String csvValues = "";
+	    		    			int j = 0;
+	    		    			for (String value: issue.getCustomFieldByName("対象機種").getValues()) {
+	    		    				if( j == 0) {
+	    		    					csvValues = value;
+	    		    				} else {
+	    		    					csvValues += "," + value;
+	    		    				}
+	    		    				j++;
+	    		    			}
+	    		    			customProperties[Task.CustomColumnKind.MODELS.ordinal()]  = csvValues;
+	    		    		}
+	    		    		
 	    					ganttDiagram.modifyDiagram_addTask(
     							taskId, 
     							parentId, null, 
@@ -359,7 +416,8 @@ public class Main {
     							issue.getStartDate(),
     							issue.getDescription(),
     							depends,
-    							issue.getTracker() != null ? issue.getTracker().getId() : 0
+    							issue.getTracker() != null ? issue.getTracker().getId() : 0,
+    							customProperties
 	    					);
 	    					
 	    		    		// Remove the checked item
@@ -391,8 +449,6 @@ public class Main {
 	    	while (it.hasNext()) {
 	    		String key = it.next();
 	    		Task task = tasks.get(key);	    		
-	    		boolean dirty = false;
-	    		int issueId = Integer.parseInt(task.getId());
 	    		
 	    		if (task.getWebLink() == null || task.getWebLink().trim().isEmpty()) {
 	    			System.out.println("New task found: " + task.getName());
@@ -410,14 +466,28 @@ public class Main {
 	    		// ----------- (1) Find project Id --------------
 	    		String parentId;
 	    		Task parentTsk = task;
-	    		Task projectTsk = null;
 	    		int projectId = 0;
+	    		String defModels = "";
+	    		String defLeader = "";
+	    		String defManager = "";
+	    		String defPIC = "";
 	    		do {
 		    		parentId = parentTsk.getParentId();
 		    		parentTsk = ganttDiagram.getTaskById(parentId);
 		    		if (parentTsk != null ) {
-		    			projectTsk = parentTsk;
 		    			projectId = Integer.parseInt(parentId) & 0x00FFFFFF;
+		    			if (defModels.isEmpty()) {
+		    				defModels = parentTsk.getCustomColumn(Task.CustomColumnKind.MODELS);
+		    			}
+		    			if (defLeader.isEmpty()) {
+		    				defLeader = parentTsk.getCustomColumn(Task.CustomColumnKind.LEADER);
+		    			}
+		    			if (defManager.isEmpty()) {
+		    				defManager = parentTsk.getCustomColumn(Task.CustomColumnKind.MANAGER);
+		    			}
+		    			if (defPIC.isEmpty()) {
+		    				defPIC = parentTsk.getCustomColumn(Task.CustomColumnKind.PIC);
+		    			}
 		    		}
 	    		} while (parentTsk != null);
 	    		
@@ -428,14 +498,17 @@ public class Main {
 	    			Project project = mgr.getProjectManager().getProjectById(projectId);
 	    			issue.setProject(project);
 	    			for (Tracker tracker: issueMgr.getTrackers()) {
-	    				System.out.println("Checking tracker: " + tracker.getId());
-	    				if (tracker.getId() == Integer.valueOf(task.getCustomColumn(Task.CustomColumnKind.TRACKER))) {
+	    				if (tracker.getName().compareTo("要件") == 0) {
 	    	    			issue.setTracker(tracker);
 	    	    			break;
 	    				}
 	    			}
 	    			issue.setSubject(task.getName());
-	    			issue.setDescription(task.getNote());
+	    			if (task.getNote() != null && !task.getNote().isEmpty()) {
+	    				issue.setDescription(task.getNote());
+	    			} else {
+	    				issue.setDescription(task.getName());
+	    			}
 	    			issue.setStatusId(1);
 	    			issue.setPriorityId(2);	    			
 	    			issue.setAssignee(userMgr.getCurrentUser());
@@ -443,43 +516,53 @@ public class Main {
 	    			
 	    			// custom fields
 	    			issue.addCustomField(
-	    				CustomFieldFactory.create( 2, "要件責任者", task.getCustomColumn(Task.CustomColumnKind.PIC))
+	    				CustomFieldFactory.create( 2, "要件責任者", task.getCustomColumn(Task.CustomColumnKind.PIC).isEmpty() ? defPIC : task.getCustomColumn(Task.CustomColumnKind.PIC))
 	    			);
 	    			issue.addCustomField(
-	    				CustomFieldFactory.create( 3, "チームリーダー", task.getCustomColumn(Task.CustomColumnKind.LEADER))
+	    				CustomFieldFactory.create( 3, "チームリーダー", task.getCustomColumn(Task.CustomColumnKind.LEADER).isEmpty() ? defLeader : task.getCustomColumn(Task.CustomColumnKind.LEADER))
 	    			);
 	    			issue.addCustomField(
-	    				CustomFieldFactory.create( 4, "責任課長", task.getCustomColumn(Task.CustomColumnKind.MANAGER))
+	    				CustomFieldFactory.create( 4, "責任課長", task.getCustomColumn(Task.CustomColumnKind.MANAGER).isEmpty() ? defManager : task.getCustomColumn(Task.CustomColumnKind.MANAGER))
+	    			);
+	    			issue.addCustomField(
+	    				CustomFieldFactory.create(12, "[詳細設計]完了予定日", "")
+	    			);
+	    			issue.addCustomField(
+	    				CustomFieldFactory.create(21, "[単体テスト]完了予定日", "")
 	    			);
 	    			
 	    			CustomField modelList = CustomFieldFactory.create(1);
 	    			modelList.setName("対象機種");
-	    			String[] modelsName = task.getCustomColumn(Task.CustomColumnKind.MODELS).split(",");
+	    			
+	    			String[] modelsName;
+	    			if (!task.getCustomColumn(Task.CustomColumnKind.MODELS).isEmpty()) {
+	    				modelsName = task.getCustomColumn(Task.CustomColumnKind.MODELS).split(",");
+	    			} else {
+	    				modelsName = defModels.split(",");
+	    			}
 	    			modelList.setValues(Arrays.asList(modelsName));
 	    			issue.addCustomField(modelList);
 	    		}	    		
 	    		
-	    		// ----------- (3) Create new Issue on Server --------------
+	    		// ----------- (2) Update optional info --------------
+	    		Issue parentIssue = issueMgr.getIssueById(Integer.valueOf(task.getParentId()));
+	    		if (parentIssue != null && parentIssue.getTargetVersion() != null) {
+	    			issue.setTargetVersion(parentIssue.getTargetVersion());
+	    		}	    		
+	    		if (task.getStartDate() != null) {
+	    			issue.setStartDate(task.getStartDate());
+	    		}
+	    		if (task.getEndDate() != null) {
+	    			issue.setDueDate(task.getEndDate());
+	    		}
+	    		
+	    		// ----------- (4) Create new Issue on Server --------------
 	    		try {
 	    			issue =issueMgr.createIssue(issue);
-		    		if (task.getStartDate() != null) {
-		    			issue.setStartDate(task.getStartDate());
-		    		}
-		    		if (task.getEndDate() != null) {
-		    			issue.setDueDate(task.getEndDate());
-		    		}
-	    			
-	    			dirty = true;
 	    		} catch (RedmineException e) {
 	    			log("Error at issue creating " + e);
 	    		}
-	    		
-	    		// ----------- (4) Commit change --------------	    		
-	    		if (dirty) {
-	    			issueMgr.update(issue);
-	    			log("New Issue Added: " + issue.getId());
-	    			dirty = false;
-	    		}
+
 	    	}
 	    	
 	    	// Update existed issues
