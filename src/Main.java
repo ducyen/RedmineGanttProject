@@ -126,10 +126,11 @@ public class Main {
 			    
 			    // task id format (32bit)                .                       .                       .
 			    //                31 30 29 28 27 26 25 24 23 22 21 20 19 18 17 16 15 14 13 12 11 10  9  8  7  6  5  4  3  2  1  0
-			    // project:        1  1
-			    // version:        1  0
-			    // assignee:       0  1  
-			    // assignee index:       #  #  #  #  #  #
+			    // project:        1  1  0
+			    // version:        1  0  0
+			    // assignee:       0  1  0  #  #  #  #  # 
+			    //  w/o version:   0  0  1  #  #  #  #  # 
+			    // 						    assignee index      
 			    // issue:                                  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #
 			    
 			    // Set Redmine project
@@ -331,7 +332,7 @@ public class Main {
 	    				}
     					if (assignee != null && assignee.getFullName().indexOf(asigneeName) >= 0 && targetProject.getId().equals(project.getId())) {
 	    					log("        Found Issue: " + issue + " project: " + targetProject.getId() + " milestone: none " + " asignee: " + assignee + " asigneeName: " + asigneeName);
-	    					String milestoneId = String.valueOf(project.getId() | 0x40000000 | (asigneeIndex << 24));
+	    					String milestoneId = String.valueOf(project.getId() | 0x20000000 | (asigneeIndex << 24));
 	    					if (!milestoneAdded) {
 	    						log("Added milestone " + milestoneId);
 		    					ganttDiagram.modifyDiagram_addTask(
@@ -458,10 +459,11 @@ public class Main {
 	    		
 			    // task id format (32bit)                .                       .                       .
 			    //                31 30 29 28 27 26 25 24 23 22 21 20 19 18 17 16 15 14 13 12 11 10  9  8  7  6  5  4  3  2  1  0
-			    // project:        1  1
-			    // version:        1  0
-			    // assignee:       0  1  
-			    // assignee index:       #  #  #  #  #  #
+			    // project:        1  1  0
+			    // version:        1  0  0
+			    // assignee:       0  1  0  #  #  #  #  # 
+			    //  w/o version:   0  0  1  #  #  #  #  # 
+			    // 						    assignee index      
 			    // issue:                                  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #
 	    		// ----------- (1) Find project Id --------------
 	    		String parentId;
@@ -471,6 +473,7 @@ public class Main {
 	    		String defLeader = "";
 	    		String defManager = "";
 	    		String defPIC = "";
+	    		int defVersion = -1;
 	    		do {
 		    		parentId = parentTsk.getParentId();
 		    		parentTsk = ganttDiagram.getTaskById(parentId);
@@ -487,6 +490,13 @@ public class Main {
 		    			}
 		    			if (defPIC.isEmpty()) {
 		    				defPIC = parentTsk.getCustomColumn(Task.CustomColumnKind.PIC);
+		    			}
+		    			if (defVersion < 0) {
+		    				if ((Integer.valueOf(parentTsk.getId()) & 0xE0000000) == 0x40000000 ||
+		    					(Integer.valueOf(parentTsk.getId()) & 0xE0000000) == 0x80000000
+		    				) {
+		    					defVersion = Integer.valueOf(parentTsk.getId()) & 0x00FFFFFF;
+			    			}
 		    			}
 		    		}
 	    		} while (parentTsk != null);
@@ -545,10 +555,15 @@ public class Main {
 	    		}	    		
 	    		
 	    		// ----------- (2) Update optional info --------------
-	    		Issue parentIssue = issueMgr.getIssueById(Integer.valueOf(task.getParentId()));
-	    		if (parentIssue != null && parentIssue.getTargetVersion() != null) {
-	    			issue.setTargetVersion(parentIssue.getTargetVersion());
-	    		}	    		
+	    		if (defVersion >= 0) {
+		    		for (Version version: mgr.getProjectManager().getVersions(projectId)) {
+		    			if (version.getId() == defVersion) {
+			    			issue.setTargetVersion(version);
+			    			break;
+		    			}
+		    		}
+	    		}
+	    		
 	    		if (task.getStartDate() != null) {
 	    			issue.setStartDate(task.getStartDate());
 	    		}
@@ -621,6 +636,24 @@ public class Main {
 	    		if (((issueId >> 24) & 0xFF) > 0) {
 	    			continue;
 	    		}
+	    		String parentId;
+	    		Task parentTsk = task;
+	    		int projectId = 0;
+	    		int defVersion = -1;
+	    		do {
+		    		parentId = parentTsk.getParentId();
+		    		parentTsk = ganttDiagram.getTaskById(parentId);
+		    		if (parentTsk != null ) {
+		    			projectId = Integer.parseInt(parentId) & 0x00FFFFFF;
+		    			if (defVersion < 0) {
+		    				if ((Integer.valueOf(parentTsk.getId()) & 0xE0000000) == 0x40000000 ||
+		    					(Integer.valueOf(parentTsk.getId()) & 0xE0000000) == 0x80000000
+		    				) {
+		    					defVersion = Integer.valueOf(parentTsk.getId()) & 0x00FFFFFF;
+			    			}
+		    			}
+		    		}
+	    		} while (parentTsk != null);
 	    		
 	    		Issue issue = null;
 	    		try {
@@ -636,6 +669,15 @@ public class Main {
 	    		}
 	    		
 	    		// ----------- (2) Update date-time --------------
+	    		if (defVersion >= 0 && (issue.getTargetVersion() == null || defVersion != issue.getTargetVersion().getId())) {
+		    		for (Version version: mgr.getProjectManager().getVersions(projectId)) {
+		    			if (version.getId() == defVersion) {
+			    			issue.setTargetVersion(version);
+			    			dirty = true;
+			    			break;
+		    			}
+		    		}
+	    		}
 	    		if (issue.getStartDate() == null || issue.getStartDate().compareTo(task.getStartDate()) != 0) {
 	    			issue.setStartDate(task.getStartDate());
 	    			dirty = true;
