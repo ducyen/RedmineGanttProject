@@ -142,7 +142,7 @@ public class Main {
 				ganttDiagram.modifyDiagram_addTask(
 					gcProjId, 
 					null, null, 
-					project.getName(), 
+					"🖨 " + project.getName(), 
 					0, 
 					project.getCreatedOn(),
 					GanttDiagram.TaskKind.PROJECT, 
@@ -191,7 +191,7 @@ public class Main {
 					ganttDiagram.modifyDiagram_addTask(
 						issueGrpId, 
 						gcProjId, null, 
-						project.getName() + "_" + version.getName(), 
+						"🏁 " + project.getName() + "_" + version.getName(), 
 						0, 
 						version.getDueDate(),
 						GanttDiagram.TaskKind.MILESTONE, 
@@ -225,8 +225,8 @@ public class Main {
 					    					ganttDiagram.modifyDiagram_addTask(
 				    							milestoneId, 
 				    							gcProjId, null, 
-				    							"☺ " + version.getName() + "_" + assignee.getFullName(), 
-				    							0, 
+				    							"😏 " + version.getName() + "_" + assignee.getFullName(),
+				    							0,
 				    							version.getDueDate(),
 				    							GanttDiagram.TaskKind.ACTIVITY, 
 				    							"1",
@@ -292,11 +292,14 @@ public class Main {
 				    		    			}
 				    		    			customProperties[Task.CustomColumnKind.MODELS.ordinal()]  = csvValues;
 				    		    		}
-				    		    		
+				    		    		String symbol = "📁 ";
+				    		    		if (issue.getTracker()!= null && issue.getTracker().getName().compareTo("要件") == 0) {
+				    		    			symbol = "📄 ";
+				    		    		}
 				    					ganttDiagram.modifyDiagram_addTask(
 			    							taskId, 
 			    							parentId, null, 
-			    							"#" + taskId + ": " + issue.getSubject(), 
+			    							symbol + " #" + taskId + ": " + issue.getSubject(), 
 			    							issue.getDoneRatio(), 
 			    							issue.getDueDate(),
 			    							GanttDiagram.TaskKind.ACTIVITY, 
@@ -338,7 +341,7 @@ public class Main {
 		    					ganttDiagram.modifyDiagram_addTask(
 	    							milestoneId, 
 	    							gcProjId, null, 
-	    							"☺ " + project.getName() + "_" + assignee.getFullName(), 
+	    							"😫 " + project.getName() + "_" + assignee.getFullName(), 
 	    							0, 
 	    							project.getCreatedOn(),
 	    							GanttDiagram.TaskKind.ACTIVITY, 
@@ -406,10 +409,14 @@ public class Main {
 	    		    			customProperties[Task.CustomColumnKind.MODELS.ordinal()]  = csvValues;
 	    		    		}
 	    		    		
+	    		    		String symbol = "📁 ";
+	    		    		if (issue.getTracker()!= null && issue.getTracker().getName().compareTo("要件") == 0) {
+	    		    			symbol = "📄 ";
+	    		    		}
 	    					ganttDiagram.modifyDiagram_addTask(
     							taskId, 
     							parentId, null, 
-    							"#" + taskId + ": " + issue.getSubject(), 
+    							symbol + " #" + taskId + ": " + issue.getSubject(), 
     							issue.getDoneRatio(), 
     							issue.getDueDate(),
     							GanttDiagram.TaskKind.ACTIVITY, 
@@ -677,6 +684,11 @@ public class Main {
 			    			break;
 		    			}
 		    		}
+	    		}
+	    		int nParentId = Integer.valueOf(task.getParentId()); 
+	    		if ((nParentId & 0xFF000000) == 0 && issue.getParentId() != nParentId) {
+	    			issue.setParentId(nParentId);
+	    			dirty = true;
 	    		}
 	    		if (issue.getStartDate() == null || issue.getStartDate().compareTo(task.getStartDate()) != 0) {
 	    			issue.setStartDate(task.getStartDate());
