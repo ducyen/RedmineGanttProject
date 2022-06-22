@@ -18,9 +18,6 @@ import java.text.ParseException;
   public class Task{
 	public enum CustomColumnKind {
 		TRACKER,
-		PIC,
-		LEADER,
-		MANAGER,
 		MODELS
 	}	  
 	  

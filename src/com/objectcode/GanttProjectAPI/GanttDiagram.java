@@ -348,78 +348,6 @@ public class GanttDiagram {
 	    }
 		taskObject.setCustomColumn(Task.CustomColumnKind.TRACKER, customFieldValue);
 	    
-        // 要件責任者
-	    customFieldId = null;
-	    customFieldValue = null;
-	    taskProperties = fDom.getElementsByTagName("taskproperty");
-	    for (int i = 0; i < taskProperties.getLength(); i++){
-	    	Element taskProperty = (Element)taskProperties.item(i);
-	    	if (taskProperty.getAttribute("name").compareTo("要件責任者") == 0) {
-	    		customFieldId = taskProperty.getAttribute("id");
-	    		customFieldValue = taskProperty.getAttribute("defaultvalue");
-	    		break;
-	    	}
-	    }
-	    if (customFieldId != null) {
-	    	NodeList customProperties = task.getElementsByTagName("customproperty"); 
-	        for (int i = 0; i < customProperties.getLength(); i++) {
-	        	Element customProperty = (Element)customProperties.item(i);
-	        	if (customProperty.getAttribute("taskproperty-id").compareTo(customFieldId) == 0) {
-		    		customFieldValue = customProperty.getAttribute("value");
-		        	break;
-	        	}
-	        }
-	    }
-		taskObject.setCustomColumn(Task.CustomColumnKind.PIC, customFieldValue);	    
-	        
-        // チームリーダー
-	    customFieldId = null;
-	    customFieldValue = null;
-	    taskProperties = fDom.getElementsByTagName("taskproperty");
-	    for (int i = 0; i < taskProperties.getLength(); i++){
-	    	Element taskProperty = (Element)taskProperties.item(i);
-	    	if (taskProperty.getAttribute("name").compareTo("チームリーダー") == 0) {
-	    		customFieldId = taskProperty.getAttribute("id");
-	    		customFieldValue = taskProperty.getAttribute("defaultvalue");
-	    		break;
-	    	}
-	    }
-	    if (customFieldId != null) {
-	    	NodeList customProperties = task.getElementsByTagName("customproperty"); 
-	        for (int i = 0; i < customProperties.getLength(); i++) {
-	        	Element customProperty = (Element)customProperties.item(i);
-	        	if (customProperty.getAttribute("taskproperty-id").compareTo(customFieldId) == 0) {
-		    		customFieldValue = customProperty.getAttribute("value");
-		        	break;
-	        	}
-	        }
-	    }
-		taskObject.setCustomColumn(Task.CustomColumnKind.LEADER, customFieldValue);	   
-		
-        // 責任課長
-	    customFieldId = null;
-	    customFieldValue = null;
-	    taskProperties = fDom.getElementsByTagName("taskproperty");
-	    for (int i = 0; i < taskProperties.getLength(); i++){
-	    	Element taskProperty = (Element)taskProperties.item(i);
-	    	if (taskProperty.getAttribute("name").compareTo("責任課長") == 0) {
-	    		customFieldId = taskProperty.getAttribute("id");
-	    		customFieldValue = taskProperty.getAttribute("defaultvalue");
-	    		break;
-	    	}
-	    }
-	    if (customFieldId != null) {
-	    	NodeList customProperties = task.getElementsByTagName("customproperty"); 
-	        for (int i = 0; i < customProperties.getLength(); i++) {
-	        	Element customProperty = (Element)customProperties.item(i);
-	        	if (customProperty.getAttribute("taskproperty-id").compareTo(customFieldId) == 0) {
-		    		customFieldValue = customProperty.getAttribute("value");
-		        	break;
-	        	}
-	        }
-	    }
-		taskObject.setCustomColumn(Task.CustomColumnKind.MANAGER, customFieldValue);	    
-
         // 対象機種
 	    customFieldId = null;
 	    customFieldValue = null;
@@ -1491,51 +1419,6 @@ public class GanttDiagram {
     if (others != null) {
 	    String propertyId = null;
 	    NodeList taskProperties = fDom.getElementsByTagName("taskproperty");
-	    
-	    // 責任者
-	    for (int i = 0; i < taskProperties.getLength(); i++){
-	    	Element taskProperty = (Element)taskProperties.item(i);
-	    	if (taskProperty.getAttribute("name").compareTo("要件責任者") == 0) {
-	    		propertyId = taskProperty.getAttribute("id");
-	    		break;
-	    	}
-	    }
-	    if (propertyId != null) {
-	        Element customproperty = fDom.createElement("customproperty");
-	        customproperty.setAttribute("taskproperty-id", propertyId);
-	        customproperty.setAttribute("value", others[Task.CustomColumnKind.PIC.ordinal()]);
-	        newTask.appendChild(customproperty);
-	    }
-
-	    // チームリーダー
-	    for (int i = 0; i < taskProperties.getLength(); i++){
-	    	Element taskProperty = (Element)taskProperties.item(i);
-	    	if (taskProperty.getAttribute("name").compareTo("チームリーダー") == 0) {
-	    		propertyId = taskProperty.getAttribute("id");
-	    		break;
-	    	}
-	    }
-	    if (propertyId != null) {
-	        Element customproperty = fDom.createElement("customproperty");
-	        customproperty.setAttribute("taskproperty-id", propertyId);
-	        customproperty.setAttribute("value", others[Task.CustomColumnKind.LEADER.ordinal()]);
-	        newTask.appendChild(customproperty);
-	    }
-
-	    // 責任課長
-	    for (int i = 0; i < taskProperties.getLength(); i++){
-	    	Element taskProperty = (Element)taskProperties.item(i);
-	    	if (taskProperty.getAttribute("name").compareTo("責任課長") == 0) {
-	    		propertyId = taskProperty.getAttribute("id");
-	    		break;
-	    	}
-	    }
-	    if (propertyId != null) {
-	        Element customproperty = fDom.createElement("customproperty");
-	        customproperty.setAttribute("taskproperty-id", propertyId);
-	        customproperty.setAttribute("value", others[Task.CustomColumnKind.MANAGER.ordinal()]);
-	        newTask.appendChild(customproperty);
-	    }
 
 	    // 対象機種
 	    for (int i = 0; i < taskProperties.getLength(); i++){
@@ -1778,13 +1661,12 @@ public class GanttDiagram {
    * @param aOldResourceShortname
    * @param aNewResourceShortname
    */
-  public void modifyDiagram_addTaskResourceAllocation(String aTaskId, String aResourceShortname, String aFunction) {
+  public void modifyDiagram_addTaskResourceAllocation(String aTaskId, String aResourceId, String aFunction) {
     // log("aTaskId="+aTaskId+", aOldResourceShortname="+aOldResourceShortname+", aNewResourceShortname="+aNewResourceShortname);
     if (aTaskId == null || aTaskId.length() <= 0) return;
-    if (aResourceShortname == null || aResourceShortname.length() <= 0) return;
-    String aResourceId = getResourceId(aResourceShortname);
+    if (aResourceId == null || aResourceId.length() <= 0) return;
     if (aResourceId == null || aResourceId.length() <= 0) {
-      log("ERROR: unkwown resource: ResourceShortname="+aResourceShortname+" ; ResourceId="+aResourceId);
+      log("ERROR: unkwown resource: ResourceShortname="+aResourceId+" ; ResourceId="+aResourceId);
       return;
     }
     

@@ -95,6 +95,19 @@ public class Main {
 		return symbol;
 	}
 	
+	private static final String DEV = "Developer";
+	private static final String PIC = "Handbook Writer";
+	private static final String LEADER = "Packager";
+	private static final String MANAGER = "Project Manager";
+	private static String findRscByFunction(HashSet<ResourceAllocation> rscHash, String aFunction) {
+		for (ResourceAllocation rscAlloc : rscHash) {	    					
+			if (rscAlloc.getFunction().equalsIgnoreCase(aFunction)) {
+				return rscAlloc.getResourceId();
+			}
+		}
+		return "";
+	}
+	
 	private static void loadDataFromRedmine(
 		GanttDiagram ganttDiagram, 
 		RedmineManager mgr,
@@ -115,7 +128,7 @@ public class Main {
 	    		if (ganttDiagram.getResourceObjectById(rscId) != null) {
 	    			ganttDiagram.modifyDiagram_deleteResource(rscId);
 	    		}
-	    		ganttDiagram.modifyDiagram_addResource(rscId, user.getLastName(), "開発者");
+	    		ganttDiagram.modifyDiagram_addResource(rscId, user.getLastName(), DEV);
 	    	}
 
 	    	for (String machineName: machineNames) {
@@ -188,6 +201,7 @@ public class Main {
 						}
 					}
 				);
+				String[] asigneeNames = asigneeNameCsv.split(",");
 	    		for (Version version: versions) {
 	    			log("    Version: " + version + " --> " + version.getDueDate());
 	    			if (version.getDueDate() == null) {
@@ -201,22 +215,6 @@ public class Main {
 	    				continue;
 	    			}
 					String milestoneId = String.valueOf(version.getId() | 0x80000000);
-					ganttDiagram.modifyDiagram_addTask(
-						milestoneId, 
-						gcProjId, null, 
-						"🏁 " + version.getName(), 
-						0, 
-						version.getDueDate(),
-						GanttDiagram.TaskKind.MILESTONE, 
-						"1",
-						version.getDueDate(),
-						version.getDescription(),
-						null,
-						0,
-						null
-					);
-					
-					String[] asigneeNames = asigneeNameCsv.split(",");
 	    			for (int i = issues.size() - 1; i >= 0; i--) {
 	    				Issue issue = issues.get(i);
 	    				Version targetVersion = issue.getTargetVersion();
@@ -258,7 +256,6 @@ public class Main {
 	    		    			/* find parent */
 	    		    			for (Issue parentIssue: orgIssues){
 	    		    				if (parentIssue.getId().equals(issue.getParentId()) &&
-	    		    					parentIssue.getAssignee().equals(issue.getAssignee()) &&
 	    		    					issue.getTargetVersion().equals(parentIssue.getTargetVersion())) 
 	    		    				{
 			    		    			parentId = String.valueOf(issue.getParentId());
@@ -269,17 +266,6 @@ public class Main {
 	    		    		}
 	    		    		
 	    		    		String[] customProperties = new String[Task.CustomColumnKind.values().length];
-	    		    		if (issue.getCustomFieldByName("要件責任者") != null) {
-	    		    			customProperties[Task.CustomColumnKind.PIC.ordinal()    ] = issue.getCustomFieldByName("要件責任者").getValue();
-    						} else if (issue.getCustomFieldByName("要求責任者") != null) {
-	    		    			customProperties[Task.CustomColumnKind.PIC.ordinal()    ] = issue.getCustomFieldByName("要求責任者").getValue();
-    						}
-	    		    		if (issue.getCustomFieldByName("チームリーダー") != null) {
-	    		    			customProperties[Task.CustomColumnKind.LEADER.ordinal() ] = issue.getCustomFieldByName("チームリーダー").getValue();
-	    		    		}
-	    		    		if (issue.getCustomFieldByName("責任課長") != null) {
-	    		    			customProperties[Task.CustomColumnKind.MANAGER.ordinal()] = issue.getCustomFieldByName("責任課長"      ).getValue();
-	    		    		}
 	    		    		if (issue.getCustomFieldByName("対象機種") != null) {
 	    		    			String csvValues = "";
 	    		    			int j = 0;
@@ -308,17 +294,126 @@ public class Main {
     							customProperties
 	    					);
 	    					
-	    					Task task = ganttDiagram.getTaskById(taskId);
-	    					String resourceId = String.valueOf(issue.getAssignee().getId());
-	    					task.addUser(resourceId, true, "developer");
+	    					ganttDiagram.modifyDiagram_addTaskResourceAllocation(taskId, String.valueOf(issue.getAssignee().getId()), DEV);	    					
+	    		    		if (issue.getCustomFieldByName("要件責任者") != null) {
+		    					ganttDiagram.modifyDiagram_addTaskResourceAllocation(taskId, issue.getCustomFieldByName("要件責任者").getValue(), PIC);
+    						} else if (issue.getCustomFieldByName("要求責任者") != null) {
+		    					ganttDiagram.modifyDiagram_addTaskResourceAllocation(taskId, issue.getCustomFieldByName("要求責任者").getValue(), PIC);
+    						}
+	    		    		if (issue.getCustomFieldByName("チームリーダー") != null) {
+		    					ganttDiagram.modifyDiagram_addTaskResourceAllocation(taskId, issue.getCustomFieldByName("チームリーダー").getValue(), LEADER);
+	    		    		}
+	    		    		if (issue.getCustomFieldByName("責任課長") != null) {
+		    					ganttDiagram.modifyDiagram_addTaskResourceAllocation(taskId, issue.getCustomFieldByName("責任課長").getValue(), MANAGER);
+	    		    		}
+	    		    		
 	    		    		// Remove the checked item
 		    				issues.remove(i);
 	    				}
 	    			}
-	    			
+					ganttDiagram.modifyDiagram_addTask(
+						milestoneId, 
+						gcProjId, null, 
+						"🏁 " + version.getName(), 
+						0, 
+						version.getDueDate(),
+						GanttDiagram.TaskKind.MILESTONE, 
+						"1",
+						version.getDueDate(),
+						version.getDescription(),
+						null,
+						0,
+						null
+					);   			
 					
     			}
-	    		
+	    		// No version items
+    			for (int i = issues.size() - 1; i >= 0; i--) {
+    				Issue issue = issues.get(i);
+    				if (issue.getStartDate() == null) {
+    					issue.setStartDate(startDateToCheck);
+    				}
+					boolean eligibleToLoad = false;
+					User assignee = issue.getAssignee();
+					for (String asigneeName: asigneeNames) {
+    					if (assignee != null && assignee.getFullName().indexOf(asigneeName) >= 0) {
+    						eligibleToLoad = true;
+    						break;
+    					}		    						
+					}	    				
+    				if (eligibleToLoad) {
+    					String taskId = String.valueOf(issue.getId());
+    					// Check relations
+    		    		ArrayList<Depend> depends = new ArrayList<Depend>();
+    		    		for (IssueRelation relation: issue.getRelations()) {
+    		    			if (relation.getType().equals("precedes") &&
+    		    				!relation.getIssueToId().equals(issue.getId())
+    		    			) {
+    		    				log ("Added depencency");
+    		    				Depend dependObj = new Depend(String.valueOf(relation.getIssueToId()));
+    		    				dependObj.setfDifference(String.valueOf(relation.getDelay()));
+    		    				depends.add(dependObj);
+    		    			}
+    		    		}
+
+    		    		String parentId = gcProjId;
+    		    		if (issue.getParentId() != null) {
+    		    			/* find parent */
+    		    			for (Issue parentIssue: orgIssues){
+    		    				if (parentIssue.getId().equals(issue.getParentId())) {
+		    		    			parentId = String.valueOf(issue.getParentId());
+		    		    			log(taskId + " has parent " + parentId);
+    		    					break;
+    		    				}
+    		    			}
+    		    		}
+    		    		
+    		    		String[] customProperties = new String[Task.CustomColumnKind.values().length];
+    		    		if (issue.getCustomFieldByName("対象機種") != null) {
+    		    			String csvValues = "";
+    		    			int j = 0;
+    		    			for (String value: issue.getCustomFieldByName("対象機種").getValues()) {
+    		    				if( j == 0) {
+    		    					csvValues = value;
+    		    				} else {
+    		    					csvValues += "," + value;
+    		    				}
+    		    				j++;
+    		    			}
+    		    			customProperties[Task.CustomColumnKind.MODELS.ordinal()]  = csvValues;
+    		    		}
+    					ganttDiagram.modifyDiagram_addTask(
+							taskId, 
+							parentId, null, 
+							findReqSymbol(issue) + " #" + taskId + ": " + issue.getSubject(), 
+							issue.getDoneRatio(), 
+							issue.getDueDate(),
+							GanttDiagram.TaskKind.ACTIVITY, 
+							"1",
+							issue.getStartDate(),
+							issue.getDescription(),
+							depends,
+							issue.getTracker() != null ? issue.getTracker().getId() : 0,
+							customProperties
+    					);
+    					
+    					ganttDiagram.modifyDiagram_addTaskResourceAllocation(taskId, String.valueOf(issue.getAssignee().getId()), DEV);	    					
+    		    		if (issue.getCustomFieldByName("要件責任者") != null) {
+	    					ganttDiagram.modifyDiagram_addTaskResourceAllocation(taskId, issue.getCustomFieldByName("要件責任者").getValue(), PIC);
+						} else if (issue.getCustomFieldByName("要求責任者") != null) {
+	    					ganttDiagram.modifyDiagram_addTaskResourceAllocation(taskId, issue.getCustomFieldByName("要求責任者").getValue(), PIC);
+						}
+    		    		if (issue.getCustomFieldByName("チームリーダー") != null) {
+	    					ganttDiagram.modifyDiagram_addTaskResourceAllocation(taskId, issue.getCustomFieldByName("チームリーダー").getValue(), LEADER);
+    		    		}
+    		    		if (issue.getCustomFieldByName("責任課長") != null) {
+	    					ganttDiagram.modifyDiagram_addTaskResourceAllocation(taskId, issue.getCustomFieldByName("責任課長").getValue(), MANAGER);
+    		    		}
+    		    		
+    		    		// Remove the checked item
+	    				issues.remove(i);
+    				}
+    			}	    		
 	    	}
 	    	
 	    } catch (RedmineException e) {
@@ -374,13 +469,13 @@ public class Main {
 		    				defModels = parentTsk.getCustomColumn(Task.CustomColumnKind.MODELS);
 		    			}
 		    			if (defLeader.isEmpty()) {
-		    				defLeader = parentTsk.getCustomColumn(Task.CustomColumnKind.LEADER);
+		    				defLeader = findRscByFunction(parentTsk.getResourceHash(), LEADER);
 		    			}
 		    			if (defManager.isEmpty()) {
-		    				defManager = parentTsk.getCustomColumn(Task.CustomColumnKind.MANAGER);
+		    				defManager = findRscByFunction(parentTsk.getResourceHash(), MANAGER);
 		    			}
 		    			if (defPIC.isEmpty()) {
-		    				defPIC = parentTsk.getCustomColumn(Task.CustomColumnKind.PIC);
+		    				defPIC = findRscByFunction(parentTsk.getResourceHash(), PIC);
 		    			}
 		    			if (defVersion < 0) {
 		    				if ((Integer.valueOf(parentTsk.getId()) & 0xE0000000) == 0x40000000 ||
@@ -417,13 +512,13 @@ public class Main {
 	    			
 	    			// custom fields
 	    			issue.addCustomField(
-	    				CustomFieldFactory.create( 2, "要件責任者", task.getCustomColumn(Task.CustomColumnKind.PIC).isEmpty() ? defPIC : task.getCustomColumn(Task.CustomColumnKind.PIC))
+	    				CustomFieldFactory.create( 2, "要件責任者", findRscByFunction(task.getResourceHash(), PIC).isEmpty() ? defPIC : findRscByFunction(task.getResourceHash(), PIC))
 	    			);
 	    			issue.addCustomField(
-	    				CustomFieldFactory.create( 3, "チームリーダー", task.getCustomColumn(Task.CustomColumnKind.LEADER).isEmpty() ? defLeader : task.getCustomColumn(Task.CustomColumnKind.LEADER))
+	    				CustomFieldFactory.create( 3, "チームリーダー", findRscByFunction(task.getResourceHash(), LEADER).isEmpty() ? defLeader : findRscByFunction(task.getResourceHash(), LEADER))
 	    			);
 	    			issue.addCustomField(
-	    				CustomFieldFactory.create( 4, "責任課長", task.getCustomColumn(Task.CustomColumnKind.MANAGER).isEmpty() ? defManager : task.getCustomColumn(Task.CustomColumnKind.MANAGER))
+	    				CustomFieldFactory.create( 4, "責任課長", findRscByFunction(task.getResourceHash(), MANAGER).isEmpty() ? defManager : findRscByFunction(task.getResourceHash(), MANAGER))
 	    			);
 	    			issue.addCustomField(
 	    				CustomFieldFactory.create(12, "[詳細設計]完了予定日", "")
