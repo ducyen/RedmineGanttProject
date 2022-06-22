@@ -438,7 +438,7 @@ public class Main {
 	    	}
 	    	
 	    } catch (RedmineException e) {
-	    	log("Connection Error");
+	    	log("Connection Error " + e);
 	    }
 	    
 	    ganttDiagram.writeGanttDiagram();
