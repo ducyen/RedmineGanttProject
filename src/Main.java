@@ -86,6 +86,14 @@ public class Main {
 	    log("\n------------------End-Program---------------------\n");
 	}
 	
+	private static String findReqSymbol(Issue issue) {
+		String symbol = "📁 ";
+		if (issue.getTracker()!= null && issue.getTracker().getName().compareTo("要件") == 0) {
+			symbol = "📄 ";
+		}
+		return symbol;
+	}
+	
 	private static void loadDataFromRedmine(
 		GanttDiagram ganttDiagram, 
 		RedmineManager mgr,
@@ -142,7 +150,7 @@ public class Main {
 				ganttDiagram.modifyDiagram_addTask(
 					gcProjId, 
 					null, null, 
-					"🖨 " + project.getName(), 
+					"🖨 " + project.getName(), 			// printer: 🖨； 企画：㊭
 					0, 
 					project.getCreatedOn(),
 					GanttDiagram.TaskKind.PROJECT, 
@@ -191,7 +199,7 @@ public class Main {
 					ganttDiagram.modifyDiagram_addTask(
 						issueGrpId, 
 						gcProjId, null, 
-						"🏁 " + project.getName() + "_" + version.getName(), 
+						"🏁 " + version.getName(), 
 						0, 
 						version.getDueDate(),
 						GanttDiagram.TaskKind.MILESTONE, 
@@ -292,14 +300,10 @@ public class Main {
 				    		    			}
 				    		    			customProperties[Task.CustomColumnKind.MODELS.ordinal()]  = csvValues;
 				    		    		}
-				    		    		String symbol = "📁 ";
-				    		    		if (issue.getTracker()!= null && issue.getTracker().getName().compareTo("要件") == 0) {
-				    		    			symbol = "📄 ";
-				    		    		}
 				    					ganttDiagram.modifyDiagram_addTask(
 			    							taskId, 
 			    							parentId, null, 
-			    							symbol + " #" + taskId + ": " + issue.getSubject(), 
+			    							findReqSymbol(issue) + " #" + taskId + ": " + issue.getSubject(), 
 			    							issue.getDoneRatio(), 
 			    							issue.getDueDate(),
 			    							GanttDiagram.TaskKind.ACTIVITY, 
@@ -341,7 +345,7 @@ public class Main {
 		    					ganttDiagram.modifyDiagram_addTask(
 	    							milestoneId, 
 	    							gcProjId, null, 
-	    							"😫 " + project.getName() + "_" + assignee.getFullName(), 
+	    							"😫 " + "バージョン未定_" + assignee.getFullName(), 
 	    							0, 
 	    							project.getCreatedOn(),
 	    							GanttDiagram.TaskKind.ACTIVITY, 
@@ -409,14 +413,10 @@ public class Main {
 	    		    			customProperties[Task.CustomColumnKind.MODELS.ordinal()]  = csvValues;
 	    		    		}
 	    		    		
-	    		    		String symbol = "📁 ";
-	    		    		if (issue.getTracker()!= null && issue.getTracker().getName().compareTo("要件") == 0) {
-	    		    			symbol = "📄 ";
-	    		    		}
 	    					ganttDiagram.modifyDiagram_addTask(
     							taskId, 
     							parentId, null, 
-    							symbol + " #" + taskId + ": " + issue.getSubject(), 
+    							findReqSymbol(issue) + " #" + taskId + ": " + issue.getSubject(), 
     							issue.getDoneRatio(), 
     							issue.getDueDate(),
     							GanttDiagram.TaskKind.ACTIVITY, 
