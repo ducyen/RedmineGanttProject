@@ -37,6 +37,7 @@ public class Main {
 	    // Parse series names
 	    String[] machineNames = System.getenv("PROJECTS").split(",");
     	String asigneeName = System.getenv("ASSIGNEE");
+    	String userIds = System.getenv("USER_ID");
     	try {
     		startDateToCheck = GanttDiagram.gDATEFORMAT_YYYY_MM_DD.parse(System.getenv("START_DATE"));
     	} catch (ParseException e) {
@@ -77,7 +78,7 @@ public class Main {
 	    RedmineManager mgr = RedmineManagerFactory.createWithApiKey(uri, apiAccessKey);
 	    
 	    if (args[0].equals("load"))
-	    	loadDataFromRedmine(ganttDiagram, mgr, machineNames, startDateToCheck, asigneeName);
+	    	loadDataFromRedmine(ganttDiagram, mgr, machineNames, startDateToCheck, asigneeName, userIds.split(","));
 	    else if (args[0].equals("save"))
 	    	saveDataToRedmine(ganttDiagram, mgr, asigneeName);
 	    else
@@ -99,16 +100,29 @@ public class Main {
 		RedmineManager mgr,
 		String[] machineNames,
 		Date startDateToCheck,
-		String asigneeNameCsv
+		String asigneeNameCsv,
+		String[] resourceIdCsv
 	) {
 	    try {
 	    	ProjectManager projMgr = mgr.getProjectManager();
 	    	List<Project> projects = new ArrayList<Project>();
+	    	UserManager userMgr = mgr.getUserManager();
+	    	
+	    	// Load resources
+	    	for (String rscId: resourceIdCsv) {
+	    		int userId = Integer.valueOf(rscId);
+	    		User user = userMgr.getUserById(userId);
+	    		if (ganttDiagram.getResourceObjectById(rscId) != null) {
+	    			ganttDiagram.modifyDiagram_deleteResource(rscId);
+	    		}
+	    		ganttDiagram.modifyDiagram_addResource(rscId, user.getLastName(), "開発者");
+	    	}
 
 	    	for (String machineName: machineNames) {
 	    		projects.add(projMgr.getProjectByKey(machineName));
 	    	}
 	    	
+	    	// Load project
 	    	for (Project project: projects) {
 	    		List<Version> versions = projMgr.getVersions(project.getId());
 			    List<Issue> issues = mgr.getIssueManager().getIssues(project.getIdentifier(), null, Include.relations);
@@ -134,12 +148,9 @@ public class Main {
 			    
 			    // task id format (32bit)                .                       .                       .
 			    //                31 30 29 28 27 26 25 24 23 22 21 20 19 18 17 16 15 14 13 12 11 10  9  8  7  6  5  4  3  2  1  0
-			    // project:        1  1  0
-			    // version:        1  0  0
-			    // assignee:       0  1  0  #  #  #  #  # 
-			    //  w/o version:   0  0  1  #  #  #  #  # 
-			    // 						    assignee index      
-			    // issue:                                  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #
+			    // project:        1  1 
+			    // version:        1  0 
+			    // issue:                #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #
 			    
 			    // Set Redmine project
 				String gcProjId = String.valueOf(project.getId() | 0xC0000000);
@@ -183,21 +194,15 @@ public class Main {
 	    				log("No Due Date --> set to start date");
 	    				version.setDueDate(startDateToCheck);
 	    			}
-	    			/*
-	    			if (version.getProject().getId() != project.getId()) {
-	    				log("Not this project");
-	    				continue;
-	    			}
-	    			*/
 	    			if (startDateToCheck.compareTo(version.getDueDate()) > 0) {
 	    				continue;
 	    			}
 	    			if (version.getStatus().compareToIgnoreCase("open") != 0) {
 	    				continue;
 	    			}
-					String issueGrpId = String.valueOf(version.getId() | 0x80000000);
+					String milestoneId = String.valueOf(version.getId() | 0x80000000);
 					ganttDiagram.modifyDiagram_addTask(
-						issueGrpId, 
+						milestoneId, 
 						gcProjId, null, 
 						"🏁 " + version.getName(), 
 						0, 
@@ -212,152 +217,24 @@ public class Main {
 					);
 					
 					String[] asigneeNames = asigneeNameCsv.split(",");
-					int asigneeIndex = 0;
-					for (String asigneeName: asigneeNames) {
-						boolean milestoneAdded = false;
-		    			for (int i = issues.size() - 1; i >= 0; i--) {
-		    				Issue issue = issues.get(i);
-		    				Version targetVersion = issue.getTargetVersion();
-		    				Project targetProject = issue.getProject();
-		    				if (issue.getStartDate() == null) {
-		    					issue.setStartDate(startDateToCheck);
-		    				}
-		    				if (targetVersion != null && targetProject != null) {
-			    				if (targetVersion.getId().equals(version.getId()) && targetProject.getId().equals(project.getId())) {
-			    					User assignee = issue.getAssignee();
-			    					String milestoneId = String.valueOf(version.getId() | 0x40000000 | (asigneeIndex << 24));
-			    					if (assignee != null && assignee.getFullName().indexOf(asigneeName) >= 0) {
-				    					log("        Found Issue: " + issue + " project: " + targetProject.getId() + " milestone: " + milestoneId + " asignee: " + assignee + " asigneeName: " + asigneeName);
-				    					if (!milestoneAdded) {
-				    						log("Added milestone " + milestoneId);
-					    					ganttDiagram.modifyDiagram_addTask(
-				    							milestoneId, 
-				    							gcProjId, null, 
-				    							"😏 " + version.getName() + "_" + assignee.getFullName(),
-				    							0,
-				    							version.getDueDate(),
-				    							GanttDiagram.TaskKind.ACTIVITY, 
-				    							"1",
-				    							version.getDueDate(),
-				    							version.getDescription(),
-				    							null,
-				    							0,
-				    							null
-				    						);
-					    					milestoneAdded = true;
-				    					}
-				    					String taskId = String.valueOf(issue.getId());
-				    					// Check relations
-				    		    		ArrayList<Depend> depends = new ArrayList<Depend>();
-				    		    		for (IssueRelation relation: issue.getRelations()) {
-				    		    			if (relation.getType().equals("precedes") &&
-				    		    				!relation.getIssueToId().equals(issue.getId())
-				    		    			) {
-				    		    				log ("Added depencency");
-				    		    				Depend dependObj = new Depend(String.valueOf(relation.getIssueToId()));
-				    		    				dependObj.setfDifference(String.valueOf(relation.getDelay()));
-				    		    				depends.add(dependObj);
-				    		    			}
-				    		    		}
-
-				    		    		String parentId = milestoneId;
-				    		    		if (issue.getParentId() != null) {
-				    		    			/* find parent */
-				    		    			for (Issue parentIssue: orgIssues){
-				    		    				if (parentIssue.getId().equals(issue.getParentId()) &&
-				    		    					parentIssue.getAssignee().equals(issue.getAssignee()) &&
-				    		    					issue.getTargetVersion().equals(parentIssue.getTargetVersion())) 
-				    		    				{
-						    		    			parentId = String.valueOf(issue.getParentId());
-						    		    			log(taskId + " has parent " + parentId);
-				    		    					break;
-				    		    				}
-				    		    			}
-				    		    		}
-				    		    		
-				    		    		String[] customProperties = new String[Task.CustomColumnKind.values().length];
-				    		    		if (issue.getCustomFieldByName("要件責任者") != null) {
-				    		    			customProperties[Task.CustomColumnKind.PIC.ordinal()    ] = issue.getCustomFieldByName("要件責任者").getValue();
-			    						} else if (issue.getCustomFieldByName("要求責任者") != null) {
-				    		    			customProperties[Task.CustomColumnKind.PIC.ordinal()    ] = issue.getCustomFieldByName("要求責任者").getValue();
-			    						}
-				    		    		if (issue.getCustomFieldByName("チームリーダー") != null) {
-				    		    			customProperties[Task.CustomColumnKind.LEADER.ordinal() ] = issue.getCustomFieldByName("チームリーダー").getValue();
-				    		    		}
-				    		    		if (issue.getCustomFieldByName("責任課長") != null) {
-				    		    			customProperties[Task.CustomColumnKind.MANAGER.ordinal()] = issue.getCustomFieldByName("責任課長"      ).getValue();
-				    		    		}
-				    		    		if (issue.getCustomFieldByName("対象機種") != null) {
-				    		    			String csvValues = "";
-				    		    			int j = 0;
-				    		    			for (String value: issue.getCustomFieldByName("対象機種").getValues()) {
-				    		    				if( j == 0) {
-				    		    					csvValues = value;
-				    		    				} else {
-				    		    					csvValues += "," + value;
-				    		    				}
-				    		    				j++;
-				    		    			}
-				    		    			customProperties[Task.CustomColumnKind.MODELS.ordinal()]  = csvValues;
-				    		    		}
-				    					ganttDiagram.modifyDiagram_addTask(
-			    							taskId, 
-			    							parentId, null, 
-			    							findReqSymbol(issue) + " #" + taskId + ": " + issue.getSubject(), 
-			    							issue.getDoneRatio(), 
-			    							issue.getDueDate(),
-			    							GanttDiagram.TaskKind.ACTIVITY, 
-			    							"1",
-			    							issue.getStartDate(),
-			    							issue.getDescription(),
-			    							depends,
-			    							issue.getTracker() != null ? issue.getTracker().getId() : 0,
-			    							customProperties
-				    					);
-				    					
-				    		    		// Remove the checked item
-					    				issues.remove(i);
-			    					}
-		    					}
-		    				}
-	    				}
-		    			asigneeIndex++;
-	    			}
-	    			
-	    		}
-	    		// No version items
-				String[] asigneeNames = asigneeNameCsv.split(",");
-				int asigneeIndex = 0;
-				for (String asigneeName: asigneeNames) {
-					boolean milestoneAdded = false;
 	    			for (int i = issues.size() - 1; i >= 0; i--) {
 	    				Issue issue = issues.get(i);
+	    				Version targetVersion = issue.getTargetVersion();
 	    				Project targetProject = issue.getProject();
-    					User assignee = issue.getAssignee();
 	    				if (issue.getStartDate() == null) {
 	    					issue.setStartDate(startDateToCheck);
 	    				}
-    					if (assignee != null && assignee.getFullName().indexOf(asigneeName) >= 0 && targetProject.getId().equals(project.getId())) {
-	    					log("        Found Issue: " + issue + " project: " + targetProject.getId() + " milestone: none " + " asignee: " + assignee + " asigneeName: " + asigneeName);
-	    					String milestoneId = String.valueOf(project.getId() | 0x20000000 | (asigneeIndex << 24));
-	    					if (!milestoneAdded) {
-	    						log("Added milestone " + milestoneId);
-		    					ganttDiagram.modifyDiagram_addTask(
-	    							milestoneId, 
-	    							gcProjId, null, 
-	    							"😫 " + "バージョン未定_" + assignee.getFullName(), 
-	    							0, 
-	    							project.getCreatedOn(),
-	    							GanttDiagram.TaskKind.ACTIVITY, 
-	    							"1",
-	    							project.getCreatedOn(),
-	    							project.getDescription(),
-	    							null,
-	    							0,
-	    							null
-	    						);
-		    					milestoneAdded = true;
-	    					}
+    					boolean eligibleToLoad = false;
+    					User assignee = issue.getAssignee();
+    					for (String asigneeName: asigneeNames) {
+	    					if (assignee != null && assignee.getFullName().indexOf(asigneeName) >= 0) {
+	    						eligibleToLoad = true;
+	    						break;
+	    					}		    						
+    					}	    				
+	    				if (targetVersion != null && targetProject != null && eligibleToLoad &&
+		    				(targetVersion.getId().equals(version.getId()) && targetProject.getId().equals(project.getId()))
+		    			) {
 	    					String taskId = String.valueOf(issue.getId());
 	    					// Check relations
 	    		    		ArrayList<Depend> depends = new ArrayList<Depend>();
@@ -371,14 +248,18 @@ public class Main {
 	    		    				depends.add(dependObj);
 	    		    			}
 	    		    		}
-	    		    		
-	    		    		String parentId = milestoneId;
+	    		    		// Set version as milestone
+		    				Depend dependObj = new Depend(milestoneId);
+		    				dependObj.setHardness("Rubber");
+	    		    		depends.add(dependObj);
+
+	    		    		String parentId = gcProjId;
 	    		    		if (issue.getParentId() != null) {
 	    		    			/* find parent */
 	    		    			for (Issue parentIssue: orgIssues){
 	    		    				if (parentIssue.getId().equals(issue.getParentId()) &&
 	    		    					parentIssue.getAssignee().equals(issue.getAssignee()) &&
-	    		    					parentIssue.getTargetVersion() == null) 
+	    		    					issue.getTargetVersion().equals(parentIssue.getTargetVersion())) 
 	    		    				{
 			    		    			parentId = String.valueOf(issue.getParentId());
 			    		    			log(taskId + " has parent " + parentId);
@@ -412,7 +293,6 @@ public class Main {
 	    		    			}
 	    		    			customProperties[Task.CustomColumnKind.MODELS.ordinal()]  = csvValues;
 	    		    		}
-	    		    		
 	    					ganttDiagram.modifyDiagram_addTask(
     							taskId, 
     							parentId, null, 
@@ -428,11 +308,15 @@ public class Main {
     							customProperties
 	    					);
 	    					
+	    					Task task = ganttDiagram.getTaskById(taskId);
+	    					String resourceId = String.valueOf(issue.getAssignee().getId());
+	    					task.addUser(resourceId, true, "developer");
 	    		    		// Remove the checked item
 		    				issues.remove(i);
-    					}
-    				}
-	    			asigneeIndex++;
+	    				}
+	    			}
+	    			
+					
     			}
 	    		
 	    	}
@@ -748,12 +632,15 @@ public class Main {
 	    		
 	    		// ----------- (3) Update relation existed in depend list -----------
     			for (Depend dependObj: depends) {
-    				issueMgr.createRelation(												// by the new one has another delay
-    					issueId, 
-    					Integer.parseInt(dependObj.getId()), 
-    					"precedes", 
-    					Integer.parseInt(dependObj.getfDifference())
-    				);
+    				Task dependTsk = tasks.get(dependObj.getId());
+    				if (dependTsk.isActivity()) {
+    					issueMgr.createRelation(												// by the new one has another delay
+	    					issueId, 
+	    					Integer.parseInt(dependObj.getId()), 
+	    					"precedes", 
+	    					Integer.parseInt(dependObj.getfDifference())
+	    				);
+    				}
     				dirty = true;
 	    		}
 

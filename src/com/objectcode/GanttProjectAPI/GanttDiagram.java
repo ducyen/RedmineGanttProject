@@ -1461,7 +1461,11 @@ public class GanttDiagram {
 	        depend.setAttribute("id", dependObject.getId());
 	        depend.setAttribute("type", "2");
 	        depend.setAttribute("difference", dependObject.getfDifference());
-	        depend.setAttribute("hardness", "Strong");
+	        String hardness = "Strong";
+	        if (dependObject.getHardness() != null && !dependObject.getHardness().isEmpty()) {
+	        	hardness = dependObject.getHardness();
+	        }
+	        depend.setAttribute("hardness", hardness);
 	        // log("");
     	}
       }
