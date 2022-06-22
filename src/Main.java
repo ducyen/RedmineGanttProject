@@ -29,6 +29,8 @@ public class Main {
 		// LOGGER.debug(aLogMsg);
 		System.out.println(aLogMsg);  // for standalone execution of GanttDiagram.java
 	}
+	private static GanttDiagram ganttDiagram; 
+	private static RedmineManager mgr;
 
 	/**
 	 * @param args
@@ -46,7 +48,7 @@ public class Main {
 	    
 //	    String ganttDiagramFile = "/home/objectcode/workspace/GanttProjectAPI/data/Demo1.gan"; 	//Use this or an equal path for Unix-systems
 		String ganttDiagramFile = System.getenv("GANTTPROJ_FILE");				//Use this or an equal path for Windows-systems
-	    GanttDiagram ganttDiagram = new GanttDiagram(ganttDiagramFile);
+	    ganttDiagram = new GanttDiagram(ganttDiagramFile);
 	    String msg = ganttDiagram.loadGanttDiagram();   
 	    log("\nGanttDiagram loaded: "+ganttDiagram+" (Message="+msg+")\n\n");
 	    
@@ -75,12 +77,12 @@ public class Main {
 	    String uri = System.getenv("REDMINE_URL");
 	    String apiAccessKey = System.getenv("API_KEY");
 
-	    RedmineManager mgr = RedmineManagerFactory.createWithApiKey(uri, apiAccessKey);
+	    mgr = RedmineManagerFactory.createWithApiKey(uri, apiAccessKey);
 	    
 	    if (args[0].equals("load"))
-	    	loadDataFromRedmine(ganttDiagram, mgr, machineNames, startDateToCheck, asigneeName, userIds.split(","));
+	    	loadDataFromRedmine(machineNames, startDateToCheck, asigneeName, userIds.split(","));
 	    else if (args[0].equals("save"))
-	    	saveDataToRedmine(ganttDiagram, mgr, asigneeName);
+	    	saveDataToRedmine(asigneeName);
 	    else
 	    	log("Parameter not matched");
 	    
@@ -99,7 +101,8 @@ public class Main {
 	private static final String PIC = "Handbook Writer";
 	private static final String LEADER = "Packager";
 	private static final String MANAGER = "Project Manager";
-	private static String findRscByFunction(HashSet<ResourceAllocation> rscHash, String aFunction) {
+	private static String findRscByFunction(Task task, String aFunction) {
+		HashSet<ResourceAllocation> rscHash = task.getResourceHash();
 		for (ResourceAllocation rscAlloc : rscHash) {	    					
 			if (rscAlloc.getFunction().equalsIgnoreCase(aFunction)) {
 				return rscAlloc.getResourceId();
@@ -108,9 +111,20 @@ public class Main {
 		return "";
 	}
 	
+	private static Task findTaskMilestone(Task task) {
+		// Retrieve depend list
+		Map<String, ArrayList<Depend>> dependencies = ganttDiagram.getDependencies();
+		ArrayList<Depend> depends = dependencies.get(task.getId());
+		for (Depend dependObj: depends) {
+			Task dependTsk = ganttDiagram.getTaskById(dependObj.getId());
+			if (dependTsk.isMilestone()) {
+				return dependTsk;
+			}
+		}
+		return null;
+	}
+	
 	private static void loadDataFromRedmine(
-		GanttDiagram ganttDiagram, 
-		RedmineManager mgr,
 		String[] machineNames,
 		Date startDateToCheck,
 		String asigneeNameCsv,
@@ -120,6 +134,7 @@ public class Main {
 	    	ProjectManager projMgr = mgr.getProjectManager();
 	    	List<Project> projects = new ArrayList<Project>();
 	    	UserManager userMgr = mgr.getUserManager();
+			String[] asigneeNames = asigneeNameCsv.split(",");
 	    	
 	    	// Load resources
 	    	for (String rscId: resourceIdCsv) {
@@ -138,8 +153,22 @@ public class Main {
 	    	// Load project
 	    	for (Project project: projects) {
 	    		List<Version> versions = projMgr.getVersions(project.getId());
-			    List<Issue> issues = mgr.getIssueManager().getIssues(project.getIdentifier(), null, Include.relations);
-			    List<Issue> orgIssues = mgr.getIssueManager().getIssues(project.getIdentifier(), null, Include.relations);
+			    List<Issue> allIssues = mgr.getIssueManager().getIssues(project.getIdentifier(), null, Include.relations);
+			    List<Issue> issues = new ArrayList<Issue>();
+			    List<Issue> orgIssues = new ArrayList<Issue>();
+
+			    for (Issue issue: allIssues) {
+				    boolean eligibleToLoad = false;
+					User assignee = issue.getAssignee();
+					for (String asigneeName: asigneeNames) {
+						if (assignee != null && assignee.getFullName().indexOf(asigneeName) >= 0) {
+							issues.add(issue);
+							orgIssues.add(issue);
+							break;
+						}		    						
+					}	    				
+			    }			    
+			    
 				Collections.sort(issues,
 					new Comparator<Issue>() {
 						public int compare(Issue lhs, Issue rhs) {
@@ -201,7 +230,7 @@ public class Main {
 						}
 					}
 				);
-				String[] asigneeNames = asigneeNameCsv.split(",");
+
 	    		for (Version version: versions) {
 	    			log("    Version: " + version + " --> " + version.getDueDate());
 	    			if (version.getDueDate() == null) {
@@ -222,15 +251,7 @@ public class Main {
 	    				if (issue.getStartDate() == null) {
 	    					issue.setStartDate(startDateToCheck);
 	    				}
-    					boolean eligibleToLoad = false;
-    					User assignee = issue.getAssignee();
-    					for (String asigneeName: asigneeNames) {
-	    					if (assignee != null && assignee.getFullName().indexOf(asigneeName) >= 0) {
-	    						eligibleToLoad = true;
-	    						break;
-	    					}		    						
-    					}	    				
-	    				if (targetVersion != null && targetProject != null && eligibleToLoad &&
+	    				if (targetVersion != null && targetProject != null && 
 		    				(targetVersion.getId().equals(version.getId()) && targetProject.getId().equals(project.getId()))
 		    			) {
 	    					String taskId = String.valueOf(issue.getId());
@@ -333,15 +354,8 @@ public class Main {
     				if (issue.getStartDate() == null) {
     					issue.setStartDate(startDateToCheck);
     				}
-					boolean eligibleToLoad = false;
-					User assignee = issue.getAssignee();
-					for (String asigneeName: asigneeNames) {
-    					if (assignee != null && assignee.getFullName().indexOf(asigneeName) >= 0) {
-    						eligibleToLoad = true;
-    						break;
-    					}		    						
-					}	    				
-    				if (eligibleToLoad) {
+ 				
+    				if (true) {
     					String taskId = String.valueOf(issue.getId());
     					// Check relations
     		    		ArrayList<Depend> depends = new ArrayList<Depend>();
@@ -424,7 +438,7 @@ public class Main {
 		
 	}
 	
-	private static void saveDataToRedmine(GanttDiagram ganttDiagram, RedmineManager mgr, String assigneeName) {
+	private static void saveDataToRedmine(String assigneeName) {
     	int temp = 0;
 	    try {
 	    	IssueManager issueMgr = mgr.getIssueManager();
@@ -445,12 +459,9 @@ public class Main {
 	    		
 			    // task id format (32bit)                .                       .                       .
 			    //                31 30 29 28 27 26 25 24 23 22 21 20 19 18 17 16 15 14 13 12 11 10  9  8  7  6  5  4  3  2  1  0
-			    // project:        1  1  0
-			    // version:        1  0  0
-			    // assignee:       0  1  0  #  #  #  #  # 
-			    //  w/o version:   0  0  1  #  #  #  #  # 
-			    // 						    assignee index      
-			    // issue:                                  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #
+			    // project:        1  1 
+			    // version:        1  0 
+			    // issue:                #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #
 	    		// ----------- (1) Find project Id --------------
 	    		String parentId;
 	    		Task parentTsk = task;
@@ -469,19 +480,18 @@ public class Main {
 		    				defModels = parentTsk.getCustomColumn(Task.CustomColumnKind.MODELS);
 		    			}
 		    			if (defLeader.isEmpty()) {
-		    				defLeader = findRscByFunction(parentTsk.getResourceHash(), LEADER);
+		    				defLeader = findRscByFunction(parentTsk, LEADER);
 		    			}
 		    			if (defManager.isEmpty()) {
-		    				defManager = findRscByFunction(parentTsk.getResourceHash(), MANAGER);
+		    				defManager = findRscByFunction(parentTsk, MANAGER);
 		    			}
 		    			if (defPIC.isEmpty()) {
-		    				defPIC = findRscByFunction(parentTsk.getResourceHash(), PIC);
+		    				defPIC = findRscByFunction(parentTsk, PIC);
 		    			}
 		    			if (defVersion < 0) {
-		    				if ((Integer.valueOf(parentTsk.getId()) & 0xE0000000) == 0x40000000 ||
-		    					(Integer.valueOf(parentTsk.getId()) & 0xE0000000) == 0x80000000
-		    				) {
-		    					defVersion = Integer.valueOf(parentTsk.getId()) & 0x00FFFFFF;
+		    				Task milestone = findTaskMilestone(parentTsk);
+		    				if (milestone != null) {
+		    					defVersion = Integer.valueOf(milestone.getId()) & 0x3FFFFFFF;
 			    			}
 		    			}
 		    		}
@@ -512,13 +522,13 @@ public class Main {
 	    			
 	    			// custom fields
 	    			issue.addCustomField(
-	    				CustomFieldFactory.create( 2, "要件責任者", findRscByFunction(task.getResourceHash(), PIC).isEmpty() ? defPIC : findRscByFunction(task.getResourceHash(), PIC))
+	    				CustomFieldFactory.create( 2, "要件責任者", findRscByFunction(task, PIC).isEmpty() ? defPIC : findRscByFunction(task, PIC))
 	    			);
 	    			issue.addCustomField(
-	    				CustomFieldFactory.create( 3, "チームリーダー", findRscByFunction(task.getResourceHash(), LEADER).isEmpty() ? defLeader : findRscByFunction(task.getResourceHash(), LEADER))
+	    				CustomFieldFactory.create( 3, "チームリーダー", findRscByFunction(task, LEADER).isEmpty() ? defLeader : findRscByFunction(task, LEADER))
 	    			);
 	    			issue.addCustomField(
-	    				CustomFieldFactory.create( 4, "責任課長", findRscByFunction(task.getResourceHash(), MANAGER).isEmpty() ? defManager : findRscByFunction(task.getResourceHash(), MANAGER))
+	    				CustomFieldFactory.create( 4, "責任課長", findRscByFunction(task, MANAGER).isEmpty() ? defManager : findRscByFunction(task, MANAGER))
 	    			);
 	    			issue.addCustomField(
 	    				CustomFieldFactory.create(12, "[詳細設計]完了予定日", "")
@@ -541,7 +551,15 @@ public class Main {
 	    		}	    		
 	    		
 	    		// ----------- (2) Update optional info --------------
-	    		if (defVersion >= 0) {
+	    		Task milestone = findTaskMilestone(task);
+	    		if (milestone != null) {
+		    		for (Version version: mgr.getProjectManager().getVersions(projectId)) {
+		    			if (version.getId() == (Integer.valueOf(milestone.getId()) & 0x3FFFFFFF)) {
+			    			issue.setTargetVersion(version);
+			    			break;
+		    			}
+		    		}
+	    		}else if (defVersion >= 0) {
 		    		for (Version version: mgr.getProjectManager().getVersions(projectId)) {
 		    			if (version.getId() == defVersion) {
 			    			issue.setTargetVersion(version);
@@ -625,19 +643,11 @@ public class Main {
 	    		String parentId;
 	    		Task parentTsk = task;
 	    		int projectId = 0;
-	    		int defVersion = -1;
 	    		do {
 		    		parentId = parentTsk.getParentId();
 		    		parentTsk = ganttDiagram.getTaskById(parentId);
 		    		if (parentTsk != null ) {
 		    			projectId = Integer.parseInt(parentId) & 0x00FFFFFF;
-		    			if (defVersion < 0) {
-		    				if ((Integer.valueOf(parentTsk.getId()) & 0xE0000000) == 0x40000000 ||
-		    					(Integer.valueOf(parentTsk.getId()) & 0xE0000000) == 0x80000000
-		    				) {
-		    					defVersion = Integer.valueOf(parentTsk.getId()) & 0x00FFFFFF;
-			    			}
-		    			}
 		    		}
 	    		} while (parentTsk != null);
 	    		
@@ -654,30 +664,36 @@ public class Main {
 	    			continue;
 	    		}
 	    		
-	    		// ----------- (2) Update date-time --------------
-	    		if (defVersion >= 0 && (issue.getTargetVersion() == null || defVersion != issue.getTargetVersion().getId())) {
+	    		// ----------- (2) Update data --------------
+	    		Task milestone = findTaskMilestone(task);
+	    		if (milestone != null && (issue.getTargetVersion() == null || (Integer.valueOf(milestone.getId()) & 0x3FFFFFFF) != issue.getTargetVersion().getId())) {
 		    		for (Version version: mgr.getProjectManager().getVersions(projectId)) {
-		    			if (version.getId() == defVersion) {
+		    			if (version.getId() == (Integer.valueOf(milestone.getId()) & 0x3FFFFFFF)) {
+			    			log("Updated Version of Issue: " + issueId);
 			    			issue.setTargetVersion(version);
-			    			dirty = true;
 			    			break;
 		    			}
 		    		}
-	    		}
+	    		}	    		
+
 	    		int nParentId = Integer.valueOf(task.getParentId()); 
 	    		if ((nParentId & 0xFF000000) == 0 && issue.getParentId() != nParentId) {
+	    			log("Updated Parent of Issue: " + issueId);
 	    			issue.setParentId(nParentId);
 	    			dirty = true;
 	    		}
 	    		if (issue.getStartDate() == null || issue.getStartDate().compareTo(task.getStartDate()) != 0) {
+	    			log("Updated Start-Date of Issue: " + issueId);
 	    			issue.setStartDate(task.getStartDate());
 	    			dirty = true;
 	    		}
 	    		if (issue.getDueDate() == null || issue.getDueDate().compareTo(task.getEndDate()) != 0) {
+	    			log("Updated Due-Date of Issue: " + issueId);
 	    			issue.setDueDate(task.getEndDate());
 	    			dirty = true;
 	    		}
 	    		if (issue.getDoneRatio().compareTo(task.getCompleteLevel()) != 0) {
+	    			log("Updated Done-Ration of Issue: " + issueId);
 	    			issue.setDoneRatio(task.getCompleteLevel());
 	    			dirty = true;
 	    		}
@@ -685,6 +701,7 @@ public class Main {
 	    		   (issue.getDescription() == null || 
 	    		   issue.getDescription().replaceAll("\\r|\\n", "").compareTo(task.getNote().replaceAll("\\r|\\n", "")) != 0) 
 	    		){
+	    			log("Updated Description of Issue: " + issueId);
 	    			issue.setDescription(task.getNote());
 	    			dirty = true;
 	    		}
@@ -692,7 +709,6 @@ public class Main {
 	    		// ------------ Commit Update ------------
 	    		if (dirty) {
 	    			issueMgr.update(issue);
-	    			log("Updated Date-Time of Issue: " + issueId);
 	    			dirty = false;
 	    		}
 	    	}
@@ -721,11 +737,10 @@ public class Main {
 	    			continue;
 	    		}
 
+	    		// ----------- (3) Update relation existed in depend list -----------
 	    		// Retrieve depend list
 	    		Map<String, ArrayList<Depend>> dependencies = ganttDiagram.getDependencies();
 	    		ArrayList<Depend> depends = dependencies.get(task.getId());
-	    		
-	    		// ----------- (3) Update relation existed in depend list -----------
     			for (Depend dependObj: depends) {
     				Task dependTsk = tasks.get(dependObj.getId());
     				if (dependTsk.isActivity()) {
