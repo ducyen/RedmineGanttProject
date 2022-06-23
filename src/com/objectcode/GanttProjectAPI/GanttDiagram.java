@@ -324,56 +324,6 @@ public class GanttDiagram {
           }
         }
         
-        // tracker
-	    String customFieldId = null;
-	    String customFieldValue = null;
-	    NodeList taskProperties = fDom.getElementsByTagName("taskproperty");
-	    for (int i = 0; i < taskProperties.getLength(); i++){
-	    	Element taskProperty = (Element)taskProperties.item(i);
-	    	if (taskProperty.getAttribute("name").compareTo("tracker") == 0) {
-	    		customFieldId = taskProperty.getAttribute("id");
-	    		customFieldValue = taskProperty.getAttribute("defaultvalue");
-	    		break;
-	    	}
-	    }
-	    if (customFieldId != null) {
-	    	NodeList customProperties = task.getElementsByTagName("customproperty"); 
-	        for (int i = 0; i < customProperties.getLength(); i++) {
-	        	Element customProperty = (Element)customProperties.item(i);
-	        	if (customProperty.getAttribute("taskproperty-id").compareTo(customFieldId) == 0) {
-		    		customFieldValue = customProperty.getAttribute("value");
-		        	break;
-	        	}
-	        }
-	    }
-		taskObject.setCustomColumn(Task.CustomColumnKind.TRACKER, customFieldValue);
-	    
-        // 対象機種
-	    customFieldId = null;
-	    customFieldValue = null;
-	    taskProperties = fDom.getElementsByTagName("taskproperty");
-	    for (int i = 0; i < taskProperties.getLength(); i++){
-	    	Element taskProperty = (Element)taskProperties.item(i);
-	    	if (taskProperty.getAttribute("name").compareTo("対象機種") == 0) {
-	    		customFieldId = taskProperty.getAttribute("id");
-	    		customFieldValue = taskProperty.getAttribute("defaultvalue");
-	    		break;
-	    	}
-	    }
-	    if (customFieldId != null) {
-	    	NodeList customProperties = task.getElementsByTagName("customproperty"); 
-	        for (int i = 0; i < customProperties.getLength(); i++) {
-	        	Element customProperty = (Element)customProperties.item(i);
-	        	if (customProperty.getAttribute("taskproperty-id").compareTo(customFieldId) == 0) {
-		    		customFieldValue = customProperty.getAttribute("value");
-		        	break;
-	        	}
-	        }
-	    }
-		taskObject.setCustomColumn(Task.CustomColumnKind.MODELS, customFieldValue);	    
-		System.out.println(taskObject.getName() + ": " + taskObject.getCustomColumn(Task.CustomColumnKind.MODELS));
-        
-        
         if (nodelistChildren.getLength() == 0) {
           // tasks without subtasks are ACTIVITIES OR MILESTONES
           if (isMilestone) {
@@ -1326,7 +1276,7 @@ public class GanttDiagram {
    */
   public void modifyDiagram_addTask(String aTaskId, String aParentTaskId, String aNextSiblingTaskId, 
       String aTaskName, int aCompleteLevel, java.util.Date aDateEnd, TaskKind taskKind, String aPriority, 
-      java.util.Date aDateStart, String aNotes, ArrayList<Depend> depends, int tracker, String[] others) {
+      java.util.Date aDateStart, String aNotes, ArrayList<Depend> depends) {
     log("modifyDiagram_addTask(taskId="+aTaskId+", ParentTaskId="+aParentTaskId+", NextSiblingTaskId="+aNextSiblingTaskId);
     log("data: Name="+aTaskName+", CompleteLevel="+aCompleteLevel+", EndDate="+aDateEnd+", IsMilestone="+(taskKind == TaskKind.MILESTONE)+", Priority="+aPriority+", DateStart="+aDateStart);
     if (aNotes != null)
@@ -1398,44 +1348,6 @@ public class GanttDiagram {
     	}
       }
     
-    // tracker
-    if (tracker > 0) {
-	    String propertyId = null;
-	    NodeList taskProperties = fDom.getElementsByTagName("taskproperty");
-	    for (int i = 0; i < taskProperties.getLength(); i++){
-	    	Element taskProperty = (Element)taskProperties.item(i);
-	    	if (taskProperty.getAttribute("name").compareTo("tracker") == 0) {
-	    		propertyId = taskProperty.getAttribute("id");
-	    		break;
-	    	}
-	    }
-	    if (propertyId != null) {
-	        Element customproperty = fDom.createElement("customproperty");
-	        customproperty.setAttribute("taskproperty-id", propertyId);
-	        customproperty.setAttribute("value", String.valueOf(tracker));
-	        newTask.appendChild(customproperty);
-	    }
-    }
-    if (others != null) {
-	    String propertyId = null;
-	    NodeList taskProperties = fDom.getElementsByTagName("taskproperty");
-
-	    // 対象機種
-	    for (int i = 0; i < taskProperties.getLength(); i++){
-	    	Element taskProperty = (Element)taskProperties.item(i);
-	    	if (taskProperty.getAttribute("name").compareTo("対象機種") == 0) {
-	    		propertyId = taskProperty.getAttribute("id");
-	    		break;
-	    	}
-	    }
-	    if (propertyId != null) {
-	        Element customproperty = fDom.createElement("customproperty");
-	        customproperty.setAttribute("taskproperty-id", propertyId);
-	        customproperty.setAttribute("value", others[Task.CustomColumnKind.MODELS.ordinal()]);
-	        newTask.appendChild(customproperty);
-	    }
-    }
-      
     if (aParentTaskId == null) {
       NodeList nl_tasks = fRoot.getElementsByTagName("tasks");
       nl_tasks.item(0).appendChild(newTask);

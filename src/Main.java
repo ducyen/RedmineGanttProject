@@ -102,12 +102,15 @@ public class Main {
 	private static final String LEADER = "Packager";
 	private static final String MANAGER = "Project Manager";
 	private static String findRscByFunction(Task task, String aFunction) {
-		HashSet<ResourceAllocation> rscHash = task.getResourceHash();
-		for (ResourceAllocation rscAlloc : rscHash) {	    					
-			if (rscAlloc.getFunction().equalsIgnoreCase(aFunction)) {
-				return rscAlloc.getResourceId();
+		Hashtable<String, HashSet<ResourceAllocation>> rscAllocTbl = ganttDiagram.getResourceAllocation();
+		for (String key: rscAllocTbl.keySet()) {
+			HashSet<ResourceAllocation> rscHash = rscAllocTbl.get(key);
+			for (ResourceAllocation rscAlloc : rscHash) {	    			
+				if (rscAlloc.getTaskId().equals(task.getId()) && ganttDiagram.getRoleNameForFunction(rscAlloc.getFunction()).equalsIgnoreCase(aFunction)) {
+					return rscAlloc.getResourceId();
+				}
 			}
-		}
+		}		
 		return "";
 	}
 	
@@ -210,8 +213,6 @@ public class Main {
 					"1",
 					project.getCreatedOn(),
 					project.getDescription(),
-					null,
-					0,
 					null
 				);
 				Collections.sort(versions,
@@ -284,22 +285,8 @@ public class Main {
 	    		    					break;
 	    		    				}
 	    		    			}
-	    		    		}
-	    		    		
-	    		    		String[] customProperties = new String[Task.CustomColumnKind.values().length];
-	    		    		if (issue.getCustomFieldByName("対象機種") != null) {
-	    		    			String csvValues = "";
-	    		    			int j = 0;
-	    		    			for (String value: issue.getCustomFieldByName("対象機種").getValues()) {
-	    		    				if( j == 0) {
-	    		    					csvValues = value;
-	    		    				} else {
-	    		    					csvValues += "," + value;
-	    		    				}
-	    		    				j++;
-	    		    			}
-	    		    			customProperties[Task.CustomColumnKind.MODELS.ordinal()]  = csvValues;
-	    		    		}
+	    		    		}	    		    		
+
 	    					ganttDiagram.modifyDiagram_addTask(
     							taskId, 
     							parentId, null, 
@@ -310,9 +297,7 @@ public class Main {
     							"1",
     							issue.getStartDate(),
     							issue.getDescription(),
-    							depends,
-    							issue.getTracker() != null ? issue.getTracker().getId() : 0,
-    							customProperties
+    							depends
 	    					);
 	    					
 	    					ganttDiagram.modifyDiagram_addTaskResourceAllocation(taskId, String.valueOf(issue.getAssignee().getId()), DEV);	    					
@@ -342,8 +327,6 @@ public class Main {
 						"1",
 						version.getDueDate(),
 						version.getDescription(),
-						null,
-						0,
 						null
 					);   			
 					
@@ -382,20 +365,6 @@ public class Main {
     		    			}
     		    		}
     		    		
-    		    		String[] customProperties = new String[Task.CustomColumnKind.values().length];
-    		    		if (issue.getCustomFieldByName("対象機種") != null) {
-    		    			String csvValues = "";
-    		    			int j = 0;
-    		    			for (String value: issue.getCustomFieldByName("対象機種").getValues()) {
-    		    				if( j == 0) {
-    		    					csvValues = value;
-    		    				} else {
-    		    					csvValues += "," + value;
-    		    				}
-    		    				j++;
-    		    			}
-    		    			customProperties[Task.CustomColumnKind.MODELS.ordinal()]  = csvValues;
-    		    		}
     					ganttDiagram.modifyDiagram_addTask(
 							taskId, 
 							parentId, null, 
@@ -406,9 +375,7 @@ public class Main {
 							"1",
 							issue.getStartDate(),
 							issue.getDescription(),
-							depends,
-							issue.getTracker() != null ? issue.getTracker().getId() : 0,
-							customProperties
+							depends
     					);
     					
     					ganttDiagram.modifyDiagram_addTaskResourceAllocation(taskId, String.valueOf(issue.getAssignee().getId()), DEV);	    					
@@ -466,19 +433,16 @@ public class Main {
 	    		String parentId;
 	    		Task parentTsk = task;
 	    		int projectId = 0;
-	    		String defModels = "";
 	    		String defLeader = "";
 	    		String defManager = "";
 	    		String defPIC = "";
+	    		String defDev = "";
 	    		int defVersion = -1;
 	    		do {
 		    		parentId = parentTsk.getParentId();
 		    		parentTsk = ganttDiagram.getTaskById(parentId);
 		    		if (parentTsk != null ) {
 		    			projectId = Integer.parseInt(parentId) & 0x00FFFFFF;
-		    			if (defModels.isEmpty()) {
-		    				defModels = parentTsk.getCustomColumn(Task.CustomColumnKind.MODELS);
-		    			}
 		    			if (defLeader.isEmpty()) {
 		    				defLeader = findRscByFunction(parentTsk, LEADER);
 		    			}
@@ -487,6 +451,9 @@ public class Main {
 		    			}
 		    			if (defPIC.isEmpty()) {
 		    				defPIC = findRscByFunction(parentTsk, PIC);
+		    			}
+		    			if (defDev.isEmpty()) {
+		    				defDev = findRscByFunction(parentTsk, DEV);
 		    			}
 		    			if (defVersion < 0) {
 		    				Task milestone = findTaskMilestone(parentTsk);
@@ -516,8 +483,18 @@ public class Main {
 	    				issue.setDescription(task.getName());
 	    			}
 	    			issue.setStatusId(1);
-	    			issue.setPriorityId(2);	    			
-	    			issue.setAssignee(userMgr.getCurrentUser());
+	    			issue.setPriorityId(2);
+	    			
+	    			String dev = findRscByFunction(task, DEV);
+	    			if (dev.isEmpty()) {
+	    				dev = defDev;
+	    			}
+	    			User assignee = userMgr.getCurrentUser();
+	    			if (!dev.isEmpty()) {
+	    				assignee = userMgr.getUserById(Integer.valueOf(dev));
+	    				issue.setAssignee(assignee);
+	    			}
+	    			
 	    			issue.setParentId(Integer.valueOf(task.getParentId()));
 	    			
 	    			// custom fields
@@ -537,17 +514,11 @@ public class Main {
 	    				CustomFieldFactory.create(21, "[単体テスト]完了予定日", "")
 	    			);
 	    			
-	    			CustomField modelList = CustomFieldFactory.create(1);
-	    			modelList.setName("対象機種");
-	    			
-	    			String[] modelsName;
-	    			if (!task.getCustomColumn(Task.CustomColumnKind.MODELS).isEmpty()) {
-	    				modelsName = task.getCustomColumn(Task.CustomColumnKind.MODELS).split(",");
-	    			} else {
-	    				modelsName = defModels.split(",");
+	    			Issue parentIssue = issueMgr.getIssueById(issue.getParentId());
+	    			CustomField modelsField = parentIssue.getCustomFieldByName("対象機種");
+	    			if (modelsField != null) {
+	    				issue.addCustomField(modelsField);
 	    			}
-	    			modelList.setValues(Arrays.asList(modelsName));
-	    			issue.addCustomField(modelList);
 	    		}	    		
 	    		
 	    		// ----------- (2) Update optional info --------------
@@ -578,6 +549,9 @@ public class Main {
 	    		// ----------- (4) Create new Issue on Server --------------
 	    		try {
 	    			issue =issueMgr.createIssue(issue);
+	    			System.out.println("Added issue " + issue.getId());
+	    			task.setId(String.valueOf(issue.getId()));
+	    			task.setWebLink("http://jpeaws482.apo.epson.net/redmine2/sot/issues/" + task.getId() + ".xml");
 	    		} catch (RedmineException e) {
 	    			log("Error at issue creating " + e);
 	    		}
@@ -592,7 +566,7 @@ public class Main {
 	    		boolean dirty = false;
 	    		int issueId = Integer.parseInt(task.getId());
 	    		temp = issueId;
-	    		if (((issueId >> 24) & 0xFF) > 0) {
+	    		if (((issueId >> 24) & 0xFF) != 0) {
 	    			continue;
 	    		}
 	    		
@@ -647,7 +621,7 @@ public class Main {
 		    		parentId = parentTsk.getParentId();
 		    		parentTsk = ganttDiagram.getTaskById(parentId);
 		    		if (parentTsk != null ) {
-		    			projectId = Integer.parseInt(parentId) & 0x00FFFFFF;
+		    			projectId = Integer.parseInt(parentId) & 0x3FFFFFFF;
 		    		}
 	    		} while (parentTsk != null);
 	    		
@@ -705,6 +679,37 @@ public class Main {
 	    			issue.setDescription(task.getNote());
 	    			dirty = true;
 	    		}
+	    		
+    			String dev = findRscByFunction(task, DEV);
+    			User assignee = issue.getAssignee();
+    			if (assignee == null || !dev.isEmpty() && !dev.equals(String.valueOf(assignee.getId()))) {
+	    			log("update Developer of Issue: " + issueId);
+    				assignee = userMgr.getUserById(Integer.valueOf(dev));
+    				issue.setAssignee(assignee);
+    				dirty = true;
+    			}
+	    		
+	    		CustomField customField = issue.getCustomFieldByName("要件責任者");
+	    		String cfValue = findRscByFunction(task, PIC);
+	    		if (customField != null && !cfValue.isEmpty() && !cfValue.equals(customField.getValue())) {
+	    			log("update Per-in-charge of Issue: " + issueId);
+	    			customField.setValue(cfValue);
+	    			dirty = true;
+	    		}
+	    		customField = issue.getCustomFieldByName("チームリーダー");
+	    		cfValue = findRscByFunction(task, LEADER);
+	    		if (customField != null && !cfValue.isEmpty() && !cfValue.equals(customField.getValue())) {
+	    			log("update Team-leader of Issue: " + issueId);
+	    			customField.setValue(cfValue);
+	    			dirty = true;
+	    		}
+	    		customField = issue.getCustomFieldByName("責任課長");
+	    		cfValue = findRscByFunction(task, MANAGER);
+	    		if (customField != null && !cfValue.isEmpty() && !cfValue.equals(customField.getValue())) {
+	    			log("update Manager of Issue: " + issueId);
+	    			customField.setValue(cfValue);
+	    			dirty = true;
+	    		}
 	    		    		
 	    		// ------------ Commit Update ------------
 	    		if (dirty) {
@@ -750,8 +755,8 @@ public class Main {
 	    					"precedes", 
 	    					Integer.parseInt(dependObj.getfDifference())
 	    				);
+        				dirty = true;
     				}
-    				dirty = true;
 	    		}
 
 	    		// ----------- (4) Commit updates --------------
