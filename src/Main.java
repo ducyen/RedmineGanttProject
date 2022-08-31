@@ -194,7 +194,7 @@ public class Main {
 			    // task id format (32bit)                .                       .                       .
 			    //                31 30 29 28 27 26 25 24 23 22 21 20 19 18 17 16 15 14 13 12 11 10  9  8  7  6  5  4  3  2  1  0
 			    // project:        1  1 
-			    // version:        1  0 
+			    // version:        0  1 
 			    // issue:                #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #
 			    
 			    // Set Redmine project
@@ -244,7 +244,7 @@ public class Main {
 	    			if (version.getStatus().compareToIgnoreCase("open") != 0) {
 	    				continue;
 	    			}
-					String milestoneId = String.valueOf(version.getId() | 0x80000000);
+					String milestoneId = String.valueOf(version.getId() | 0x40000000);
 	    			for (int i = issues.size() - 1; i >= 0; i--) {
 	    				Issue issue = issues.get(i);
 	    				Version targetVersion = issue.getTargetVersion();
