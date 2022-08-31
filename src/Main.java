@@ -643,8 +643,9 @@ public class Main {
 	    		if (milestone != null && (issue.getTargetVersion() == null || (Integer.valueOf(milestone.getId()) & 0x3FFFFFFF) != issue.getTargetVersion().getId())) {
 		    		for (Version version: mgr.getProjectManager().getVersions(projectId)) {
 		    			if (version.getId() == (Integer.valueOf(milestone.getId()) & 0x3FFFFFFF)) {
-			    			log("Updated Version of Issue: " + issueId);
+			    			log("Updated Version of Issue: " + issueId + " to " + version.getId());
 			    			issue.setTargetVersion(version);
+			    			dirty = true;
 			    			break;
 		    			}
 		    		}
