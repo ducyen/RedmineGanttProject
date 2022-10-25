@@ -1573,7 +1573,7 @@ public class GanttDiagram {
    * @param aOldResourceShortname
    * @param aNewResourceShortname
    */
-  public void modifyDiagram_addTaskResourceAllocation(String aTaskId, String aResourceId, String aFunction) {
+  public void modifyDiagram_addTaskResourceAllocation(String aTaskId, String aResourceId, String aFunction, float fLoad, boolean bResponsibility) {
     // log("aTaskId="+aTaskId+", aOldResourceShortname="+aOldResourceShortname+", aNewResourceShortname="+aNewResourceShortname);
     if (aTaskId == null || aTaskId.length() <= 0) return;
     if (aResourceId == null || aResourceId.length() <= 0) return;
@@ -1591,8 +1591,8 @@ public class GanttDiagram {
     newAllocation.setAttribute("function", getFunctionNameForRole(aFunction));  // TODO: get Role from db: OC_ProjectTeam.Role 
     // set constants
     // newAllocation.setAttribute("function", getFunctionNameForRole("Not defined"));  // TODO: get Role from db: OC_ProjectTeam.Role 
-    newAllocation.setAttribute("load", "100.0");
-    newAllocation.setAttribute("responsible", "true");
+    newAllocation.setAttribute("load", String.valueOf(fLoad));
+    newAllocation.setAttribute("responsible", String.valueOf(bResponsibility));
     
     NodeList nl_allocations = fRoot.getElementsByTagName("allocations");
     nl_allocations.item(0).appendChild(newAllocation);

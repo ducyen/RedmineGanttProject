@@ -103,14 +103,25 @@ public class Main {
 	private static final String MANAGER = "Project Manager";
 	private static String findRscByFunction(Task task, String aFunction) {
 		Hashtable<String, HashSet<ResourceAllocation>> rscAllocTbl = ganttDiagram.getResourceAllocation();
-		for (String key: rscAllocTbl.keySet()) {
-			HashSet<ResourceAllocation> rscHash = rscAllocTbl.get(key);
-			for (ResourceAllocation rscAlloc : rscHash) {	    			
-				if (rscAlloc.getTaskId().equals(task.getId()) && ganttDiagram.getRoleNameForFunction(rscAlloc.getFunction()).equalsIgnoreCase(aFunction)) {
-					return rscAlloc.getResourceId();
+		if (!PIC.equals(aFunction)) { 
+			for (String key: rscAllocTbl.keySet()) {
+				HashSet<ResourceAllocation> rscHash = rscAllocTbl.get(key);
+				for (ResourceAllocation rscAlloc : rscHash) {	    			
+					if (rscAlloc.getTaskId().equals(task.getId()) && ganttDiagram.getRoleNameForFunction(rscAlloc.getFunction()).equalsIgnoreCase(aFunction)) {
+						return rscAlloc.getResourceId();
+					}
 				}
 			}
-		}		
+		} else {
+			for (String key: rscAllocTbl.keySet()) {
+				HashSet<ResourceAllocation> rscHash = rscAllocTbl.get(key);
+				for (ResourceAllocation rscAlloc : rscHash) {	    			
+					if (rscAlloc.getTaskId().equals(task.getId()) && rscAlloc.isResponsible()) {
+						return rscAlloc.getResourceId();
+					}
+				}
+			}			
+		}
 		return "";
 	}
 	
@@ -118,10 +129,12 @@ public class Main {
 		// Retrieve depend list
 		Map<String, ArrayList<Depend>> dependencies = ganttDiagram.getDependencies();
 		ArrayList<Depend> depends = dependencies.get(task.getId());
-		for (Depend dependObj: depends) {
-			Task dependTsk = ganttDiagram.getTaskById(dependObj.getId());
-			if (dependTsk.isMilestone()) {
-				return dependTsk;
+		if (depends != null) {
+			for (Depend dependObj: depends) {
+				Task dependTsk = ganttDiagram.getTaskById(dependObj.getId());
+				if (dependTsk.isMilestone()) {
+					return dependTsk;
+				}
 			}
 		}
 		return null;
@@ -300,19 +313,46 @@ public class Main {
     							depends
 	    					);
 	    					
-	    					ganttDiagram.modifyDiagram_addTaskResourceAllocation(taskId, String.valueOf(issue.getAssignee().getId()), DEV);	    					
-	    		    		if (issue.getCustomFieldByName("要件責任者") != null) {
-		    					ganttDiagram.modifyDiagram_addTaskResourceAllocation(taskId, issue.getCustomFieldByName("要件責任者").getValue(), PIC);
-    						} else if (issue.getCustomFieldByName("要求責任者") != null) {
-		    					ganttDiagram.modifyDiagram_addTaskResourceAllocation(taskId, issue.getCustomFieldByName("要求責任者").getValue(), PIC);
-    						}
+	    					// Check if developer is the same as responsibility person
+	    					String assigneeId = String.valueOf(issue.getAssignee().getId());
+	    					String picId = null;
+	    					if (issue.getCustomFieldByName("要件責任者") != null) {
+	    						picId = issue.getCustomFieldByName("要件責任者").getValue();
+	    					} else if (issue.getCustomFieldByName("要求責任者") != null){
+	    						picId = issue.getCustomFieldByName("要求責任者").getValue();
+	    					}
+	    					String leaderId = null;
 	    		    		if (issue.getCustomFieldByName("チームリーダー") != null) {
-		    					ganttDiagram.modifyDiagram_addTaskResourceAllocation(taskId, issue.getCustomFieldByName("チームリーダー").getValue(), LEADER);
+		    					leaderId = issue.getCustomFieldByName("チームリーダー").getValue();
 	    		    		}
+	    					String managerId = null;
 	    		    		if (issue.getCustomFieldByName("責任課長") != null) {
-		    					ganttDiagram.modifyDiagram_addTaskResourceAllocation(taskId, issue.getCustomFieldByName("責任課長").getValue(), MANAGER);
+		    					managerId = issue.getCustomFieldByName("責任課長").getValue();
 	    		    		}
-	    		    		
+	    					
+	    					String whoIsPic = null;
+	    					if (picId != null) {
+	    						if (assigneeId.equals(picId)) {
+	    							whoIsPic = DEV;
+	    						} else if (leaderId.equals(picId)) {
+	    							whoIsPic = LEADER;
+	    						} else if (managerId.equals(picId)) {
+	    							whoIsPic = MANAGER;
+	    						}
+	    					}
+	    					
+	    					ganttDiagram.modifyDiagram_addTaskResourceAllocation(taskId, String.valueOf(issue.getAssignee().getId()), DEV, 100, DEV.equals(whoIsPic));
+	    					/*
+	    		    		if (leaderId != null) {
+		    					ganttDiagram.modifyDiagram_addTaskResourceAllocation(taskId, leaderId, LEADER, 0, LEADER.equals(whoIsPic));
+	    		    		}
+	    		    		if (managerId != null) {
+		    					ganttDiagram.modifyDiagram_addTaskResourceAllocation(taskId, managerId, MANAGER, 0, MANAGER.equals(whoIsPic));
+	    		    		}
+	    		    		if (picId != null && !DEV.equals(whoIsPic) && !LEADER.equals(whoIsPic) && !MANAGER.equals(whoIsPic)) {
+		    					ganttDiagram.modifyDiagram_addTaskResourceAllocation(taskId, picId, PIC, 0, true);
+    						}
+	    		    		*/
 	    		    		// Remove the checked item
 		    				issues.remove(i);
 	    				}
@@ -378,18 +418,46 @@ public class Main {
 							depends
     					);
     					
-    					ganttDiagram.modifyDiagram_addTaskResourceAllocation(taskId, String.valueOf(issue.getAssignee().getId()), DEV);	    					
-    		    		if (issue.getCustomFieldByName("要件責任者") != null) {
-	    					ganttDiagram.modifyDiagram_addTaskResourceAllocation(taskId, issue.getCustomFieldByName("要件責任者").getValue(), PIC);
-						} else if (issue.getCustomFieldByName("要求責任者") != null) {
-	    					ganttDiagram.modifyDiagram_addTaskResourceAllocation(taskId, issue.getCustomFieldByName("要求責任者").getValue(), PIC);
-						}
+    					// Check if developer is the same as responsibility person
+    					String assigneeId = String.valueOf(issue.getAssignee().getId());
+    					String picId = null;
+    					if (issue.getCustomFieldByName("要件責任者") != null) {
+    						picId = issue.getCustomFieldByName("要件責任者").getValue();
+    					} else if (issue.getCustomFieldByName("要求責任者") != null){
+    						picId = issue.getCustomFieldByName("要求責任者").getValue();
+    					}
+    					String leaderId = null;
     		    		if (issue.getCustomFieldByName("チームリーダー") != null) {
-	    					ganttDiagram.modifyDiagram_addTaskResourceAllocation(taskId, issue.getCustomFieldByName("チームリーダー").getValue(), LEADER);
+	    					leaderId = issue.getCustomFieldByName("チームリーダー").getValue();
     		    		}
+    					String managerId = null;
     		    		if (issue.getCustomFieldByName("責任課長") != null) {
-	    					ganttDiagram.modifyDiagram_addTaskResourceAllocation(taskId, issue.getCustomFieldByName("責任課長").getValue(), MANAGER);
+	    					managerId = issue.getCustomFieldByName("責任課長").getValue();
     		    		}
+    					
+    					String whoIsPic = null;
+    					if (picId != null) {
+    						if (assigneeId.equals(picId)) {
+    							whoIsPic = DEV;
+    						} else if (leaderId.equals(picId)) {
+    							whoIsPic = LEADER;
+    						} else if (managerId.equals(picId)) {
+    							whoIsPic = MANAGER;
+    						}
+    					}
+    					
+    					ganttDiagram.modifyDiagram_addTaskResourceAllocation(taskId, String.valueOf(issue.getAssignee().getId()), DEV, 100, DEV.equals(whoIsPic));
+    					/*
+    		    		if (leaderId != null) {
+	    					ganttDiagram.modifyDiagram_addTaskResourceAllocation(taskId, leaderId, LEADER, 0, LEADER.equals(whoIsPic));
+    		    		}
+    		    		if (managerId != null) {
+	    					ganttDiagram.modifyDiagram_addTaskResourceAllocation(taskId, managerId, MANAGER, 0, MANAGER.equals(whoIsPic));
+    		    		}
+    		    		if (picId != null && !DEV.equals(whoIsPic) && !LEADER.equals(whoIsPic) && !MANAGER.equals(whoIsPic)) {
+	    					ganttDiagram.modifyDiagram_addTaskResourceAllocation(taskId, picId, PIC, 0, true);
+						}
+    		    		*/
     		    		
     		    		// Remove the checked item
 	    				issues.remove(i);
@@ -689,7 +757,7 @@ public class Main {
     				issue.setAssignee(assignee);
     				dirty = true;
     			}
-	    		
+	    		/*
 	    		CustomField customField = issue.getCustomFieldByName("要件責任者");
 	    		String cfValue = findRscByFunction(task, PIC);
 	    		if (customField != null && !cfValue.isEmpty() && !cfValue.equals(customField.getValue())) {
@@ -711,6 +779,7 @@ public class Main {
 	    			customField.setValue(cfValue);
 	    			dirty = true;
 	    		}
+	    		*/
 	    		    		
 	    		// ------------ Commit Update ------------
 	    		if (dirty) {
