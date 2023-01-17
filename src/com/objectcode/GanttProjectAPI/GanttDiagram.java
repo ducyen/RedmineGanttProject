@@ -1288,7 +1288,7 @@ public class GanttDiagram {
     newTask.setAttribute("id", aTaskId);
     newTask.setAttribute("name", aTaskName);
     newTask.setAttribute("complete", String.valueOf(aCompleteLevel));
-    newTask.setAttribute("webLink", "http://jpeaws482.apo.epson.net/redmine2/sot/issues/" + aTaskId + ".xml");
+    newTask.setAttribute("webLink", "http://jpeaws482.apo.epson.net/redmine2/sot/issues/" + (Integer.parseInt(aTaskId) & 0x00FFFFFF) );
     
     int aDuration = 0;
     if (aDateEnd != null && aDateStart != null) {

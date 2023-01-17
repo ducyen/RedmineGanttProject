@@ -360,7 +360,7 @@ public class Main {
 					ganttDiagram.modifyDiagram_addTask(
 						milestoneId, 
 						gcProjId, null, 
-						"🏁 " + version.getName(), 
+						"🏁 " + version.getName() + " (" + GanttDiagram.gDATEFORMAT_YYYY_MM_DD.format(version.getDueDate()) + ")", 
 						0, 
 						version.getDueDate(),
 						GanttDiagram.TaskKind.MILESTONE, 
@@ -509,19 +509,28 @@ public class Main {
 	    		do {
 		    		parentId = parentTsk.getParentId();
 		    		parentTsk = ganttDiagram.getTaskById(parentId);
-		    		if (parentTsk != null ) {
+		    		Issue parentIssue = null;
+	    			System.out.println("Parent Task Id: " + parentId);
+		    		if (parentId != null && (Integer.valueOf(parentId) & 0xC0000000) == 0) {
+		    			int parentIssueId = Integer.valueOf(parentId);
+		    			System.out.println("Parent Issue Id: " + parentIssueId);
+		    			parentIssue = issueMgr.getIssueById(parentIssueId);
+		    		}
+		    		if (parentTsk != null) {
 		    			projectId = Integer.parseInt(parentId) & 0x00FFFFFF;
-		    			if (defLeader.isEmpty()) {
-		    				defLeader = findRscByFunction(parentTsk, LEADER);
-		    			}
-		    			if (defManager.isEmpty()) {
-		    				defManager = findRscByFunction(parentTsk, MANAGER);
-		    			}
-		    			if (defPIC.isEmpty()) {
-		    				defPIC = findRscByFunction(parentTsk, PIC);
-		    			}
-		    			if (defDev.isEmpty()) {
-		    				defDev = findRscByFunction(parentTsk, DEV);
+		    			if (parentIssue != null) {
+	    					if (parentIssue.getCustomFieldByName("チームリーダー") != null) {
+			    				defLeader = parentIssue.getCustomFieldByName("チームリーダー").getValue();
+			    			}
+	    					if (parentIssue.getCustomFieldByName("責任課長") != null) {
+			    				defManager = parentIssue.getCustomFieldByName("責任課長").getValue();
+			    			}
+	    					if (parentIssue.getCustomFieldByName("要件責任者") != null) {
+			    				defPIC = parentIssue.getCustomFieldByName("要件責任者").getValue();
+			    			}
+	    					if (parentIssue.getAssignee() != null) {
+			    				defDev = String.valueOf(parentIssue.getAssignee().getId());
+			    			}
 		    			}
 		    			if (defVersion < 0) {
 		    				Task milestone = findTaskMilestone(parentTsk);
@@ -619,7 +628,7 @@ public class Main {
 	    			issue =issueMgr.createIssue(issue);
 	    			System.out.println("Added issue " + issue.getId());
 	    			task.setId(String.valueOf(issue.getId()));
-	    			task.setWebLink("http://jpeaws482.apo.epson.net/redmine2/sot/issues/" + task.getId() + ".xml");
+	    			task.setWebLink("http://jpeaws482.apo.epson.net/redmine2/sot/issues/" + (Integer.parseInt(task.getId()) & 0x00FFFFFF)/* + ".xml"*/);
 	    		} catch (RedmineException e) {
 	    			log("Error at issue creating " + e);
 	    		}

@@ -324,7 +324,7 @@ public class RedmineJSONBuilder {
             JsonOutput.addIfNotNull(writer, "category_id", issue.getCategory().getId());
         JsonOutput.addIfNotNull(writer, "notes", issue.getNotes());
         
-		String startDateName = "[構想設計]完了予定日";
+		String startDateName = "[総合テスト開始前確認] 実施予定日";
 		String dueDateName   = "[総合テスト]完了予定日";
 		
 		if (issue.getTracker() != null && issue.getTracker().getName().compareTo("要件") == 0) {

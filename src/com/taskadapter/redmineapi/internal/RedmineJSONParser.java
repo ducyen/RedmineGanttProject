@@ -425,7 +425,7 @@ public class RedmineJSONParser {
 		result.setTracker(JsonInput.getObjectOrNull(content, "tracker",
 				TRACKER_PARSER));
 		
-		String startDateName = "[構想設計]完了予定日";
+		String startDateName = "[総合テスト開始前確認] 実施予定日";
 		String dueDateName   = "[総合テスト]完了予定日";
 		
 		if (result.getTracker() != null && result.getTracker().getName().compareTo("要件") == 0) {
